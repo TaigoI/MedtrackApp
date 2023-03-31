@@ -1,0 +1,28 @@
+name: Update edgebr's Main MedtrackApp Submodule
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  update_submodules:
+    name: Update EdgeBr Submodule
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        token : ${{secrets.SERVICE_TOKEN}}
+        repository: edgebr/pds-2022-2-03
+        submodules : true
+    - name: Update Repo
+      run: |
+        git checkout main
+        git config -f .gitmodules submodule.MedtrackApp.branch main
+        git submodule update --init --recursive --remote MedtrackApp
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Actions"
+        git add .
+        git commit -m "Update MedtrackApp submodule from changes at TaigoI/MedtrackApp (${{github.event.repository.updated_at}})"
+        git push
