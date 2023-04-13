@@ -24,7 +24,7 @@ class AlarmPrescriptionItem {
     now = DateTime.now();
   }
 
-  void setPeriodicAlarm() {
+  void setPeriodicAlarm() async {
     final int hourlyPeriod = int.parse(prescriptionItem.time);
     DateTime endDate = now.add(Duration(days: int.parse(prescriptionItem.date)));
     final int timesPerDay = (24 / hourlyPeriod).ceil();
@@ -38,6 +38,7 @@ class AlarmPrescriptionItem {
       // while(currentStamp.day < endDate.day) {
     for (int i = 0; i < 3; i++) {
       currentStamp = currentStamp.add(Duration(minutes: hourlyPeriod));
+      
       final alarmSettings =  AlarmSettings(
         id: DateTime.now().millisecondsSinceEpoch % 100000, 
         dateTime: currentStamp, 
@@ -48,8 +49,11 @@ class AlarmPrescriptionItem {
         notificationBody: "${prescriptionItem.dosage} ${prescriptionItem.dosageUnit}"
       );
 
-      Alarm.set(alarmSettings: alarmSettings);
+      await Alarm.set(alarmSettings: alarmSettings); // nota: em caso de alarmes que passam do dia atual, o debug mostra a data errada
+    }
 
+    for (AlarmSettings alarm in Alarm.getAlarms()) {
+      print("Novo alarme: ${alarm.id} [${alarm.dateTime}]"); // aqui é possível ver que os alarmes têm as datas certas
     }
   }
 }
