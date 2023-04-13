@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:medtrack/components/prescription.dart';
+import 'package:medtrack/components/prescription_item.dart';
 
 import '../cache/prescription_cache.dart';
 
 import 'package:medtrack/services/alarms_service.dart';
+
+PrescriptionItem testItem = 
+  PrescriptionItem(medicine: "Amoxilina", dose: "1", dosage: "3", dosageUnit: "MG", time: '1', date: '1');
+
+AlarmPrescriptionItem alarmTest = 
+  AlarmPrescriptionItem(prescriptionItem: testItem, audioPath: 'sounds/mozart.mp3', vibrate: true);
+
 class Home extends StatelessWidget {
   Home({super.key});
 
@@ -15,7 +23,7 @@ class Home extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.menu_rounded),
-          onPressed: () {AlarmIn15Seconds();},
+          onPressed: () {alarmTest.setPeriodicAlarm();},
         ),
         title: Image.asset('assets/images/logo.png', height: 48),
         actions: <Widget>[
