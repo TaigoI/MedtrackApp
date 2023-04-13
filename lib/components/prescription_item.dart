@@ -3,45 +3,49 @@ import 'package:flutter/material.dart';
 import 'package:medtrack/enums/dosage_unit.dart';
 
 class PrescriptionItem extends StatefulWidget {
-  String medicine;
-  String dose;
+  String medicationName;
+  String doseAmount;
+  String doseUnit;
   String dosage;
   String dosageUnit;
-  String time;
-  String date;
+  String frequency;
+  String duration;
 
   PrescriptionItem(
-      {super.key,
-      required this.medicine,
-      required this.dose,
-      required this.dosage,
-      required this.dosageUnit,
-      required this.time,
-      required this.date});
+      {super.key, required this.medicationName, required this.doseAmount, required this.doseUnit,
+      required this.dosage, required this.dosageUnit, required this.frequency, required this.duration});
 
   factory PrescriptionItem.fromJson(Map<String, dynamic> json) {
-    String medicine = json['medicationName'].toString();
-    String dose = "${json['doseAmount']} ${json['doseUnit']}";
-    String dosage = json['dosage'].toString();
-    String dosageUnit = json['presentationType'].toString();
-    String time = json['frequency'].toString();
-    String date = json['duration'].toString();
-
     var prescriptionItem = PrescriptionItem(
-      medicine: medicine,
-      dose: dose,
-      dosage: dosage,
-      dosageUnit: dosageUnit,
-      time: time,
-      date: date,
+      medicationName: json['medicationName'].toString(),
+      doseAmount: json['doseAmount'].toString(),
+      doseUnit: json['doseUnit'].toString(),
+      dosage: json['dosage'].toString(),
+      dosageUnit: json['dosageUnit'].toString(),
+      frequency: json['frequency'].toString(),
+      duration: json['duration'].toString(),
     );
     return prescriptionItem;
+  }
+
+  toJSONEncodable() {
+    Map<String, dynamic> json = {
+      'medicationName': medicationName,
+      'doseAmount': doseAmount,
+      'doseUnit': doseUnit,
+      'dosage': dosage,
+      'dosageUnit': dosageUnit,
+      'frequency': frequency,
+      'duration': duration,
+    };
+    return json;
   }
 
   @override
   State<StatefulWidget> createState() => _PrescriptionState();
 }
 
+//              PrescriptionChip(icon: Icons.update, text: "${widget.frequency}h"),
 class _PrescriptionState extends State<PrescriptionItem> {
   @override
   Widget build(BuildContext context) {
@@ -50,7 +54,7 @@ class _PrescriptionState extends State<PrescriptionItem> {
       children: [
         Row(
           children: [
-            Text("${widget.medicine} • ${widget.dose}",
+            Text("${widget.medicationName} • ${widget.doseAmount} ${widget.doseUnit}",
                 style: Theme.of(context).textTheme.bodyMedium)
           ],
         ),
@@ -63,9 +67,8 @@ class _PrescriptionState extends State<PrescriptionItem> {
               PrescriptionChip(
                   icon: Icons.medication,
                   text: "x${widget.dosage}"),
-              PrescriptionChip(icon: Icons.update, text: "${widget.time}h"),
               PrescriptionChip(
-                  icon: Icons.calendar_today, text: "Por ${widget.date} dias"),
+                  icon: Icons.calendar_today, text: "Por ${widget.duration} dias"),
             ],
           ),
         )
