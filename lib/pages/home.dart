@@ -3,6 +3,7 @@ import 'package:medtrack/components/prescription.dart';
 
 import '../cache/prescription_cache.dart';
 
+import 'package:medtrack/services/alarms_service.dart';
 class Home extends StatelessWidget {
   Home({super.key});
 
@@ -14,13 +15,13 @@ class Home extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.menu_rounded),
-          onPressed: () {},
+          onPressed: () {AlarmIn15Seconds();},
         ),
         title: Image.asset('assets/images/logo.png', height: 48),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.account_circle_rounded),
-            onPressed: () {},
+            onPressed: () {stopAlarms();},
           )
         ],
         centerTitle: true,
