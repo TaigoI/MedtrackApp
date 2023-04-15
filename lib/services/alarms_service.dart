@@ -37,7 +37,7 @@ class AlarmPrescriptionItem {
     // actual logic:
       // while(currentStamp.day < endDate.day) {
     for (int i = 0; i < 3; i++) {
-      currentStamp = currentStamp.add(Duration(minutes: hourlyPeriod));
+      currentStamp = currentStamp.add(const Duration(seconds: 15));
       
       final alarmSettings =  AlarmSettings(
         id: DateTime.now().millisecondsSinceEpoch % 100000, 
@@ -79,4 +79,12 @@ void stopAlarms() {
   for (AlarmSettings alarm in Alarm.getAlarms()) {
     Alarm.stop(alarm.id);
   }
+}
+
+void printAlarms() {
+  print("\nAlarmes:");
+  for (AlarmSettings alarm in Alarm.getAlarms()) {
+      print("Alarme: ${alarm.id} [${alarm.dateTime}]"); // aqui é possível ver que os alarmes têm as datas certas
+  }
+  print("");
 }

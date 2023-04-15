@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:medtrack/components/prescription.dart';
 import 'package:medtrack/components/prescription_item.dart';
+import 'package:medtrack/pages/ring.dart';
 
 import '../cache/prescription_cache.dart';
 
@@ -12,10 +16,51 @@ PrescriptionItem testItem =
 AlarmPrescriptionItem alarmTest = 
   AlarmPrescriptionItem(prescriptionItem: testItem, audioPath: 'sounds/mozart.mp3', vibrate: true);
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   Home({super.key});
 
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   PrescriptionCache prescriptionCache =  PrescriptionCache();
+
+  late List<AlarmSettings> alarms;
+
+  static StreamSubscription? subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    loadAlarms();
+    subscription ??= Alarm.ringStream.stream.listen(
+      (alarmSettings) => navigateToRingScreen(alarmSettings)
+    );
+  }
+
+  void loadAlarms() {
+    setState(() {
+      alarms = Alarm.getAlarms();
+      alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
+    });
+  }
+
+  Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RingScreen(alarmSettings: alarmSettings)
+      )
+    );
+    loadAlarms();
+  }
+
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,3 +100,4 @@ class Home extends StatelessWidget {
     );
   }
 }
+  
