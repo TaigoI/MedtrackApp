@@ -1,12 +1,19 @@
 import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 
-import '../services/alarms_service.dart';
+import '../components/prescription_item.dart';
+import 'package:medtrack/pages/home.dart';
 
 class RingScreen extends StatelessWidget {
   final AlarmSettings alarmSettings;
-  // pegar a classe de alarme também para ter as informações do medicamento
-  const RingScreen({Key? key, required this.alarmSettings}) : super(key: key);
+  late PrescriptionItem prescriptionItem;
+
+  RingScreen({super.key, required this.alarmSettings}) {
+    prescriptionItem = 
+      alarmsList.firstWhere(
+        (element) => element.alarmsIds.contains(alarmSettings.id)
+      ).prescriptionItem;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +33,7 @@ class RingScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Text("Alarme ${alarmSettings.id} tocando...",
+            Text("${prescriptionItem.medicine} • ${prescriptionItem.dose}",
                 style: Theme.of(context).textTheme.titleLarge),
             const Text("🔔", style: TextStyle(fontSize: 50)),
             Row(

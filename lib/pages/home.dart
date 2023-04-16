@@ -10,14 +10,18 @@ import '../cache/prescription_cache.dart';
 
 import 'package:medtrack/services/alarms_service.dart';
 
+List<AlarmPrescriptionItem> alarmsList = List.empty(growable: true);
+
 PrescriptionItem testItem = 
   PrescriptionItem(medicine: "Amoxilina", dose: "1", dosage: "3", dosageUnit: "MG", time: '1', date: '1');
 
 AlarmPrescriptionItem alarmTest = 
   AlarmPrescriptionItem(prescriptionItem: testItem, audioPath: 'sounds/mozart.mp3', vibrate: true);
 
+
 class Home extends StatefulWidget {
   Home({super.key});
+
 
   @override
   State<Home> createState() => _HomeState();
@@ -43,6 +47,7 @@ class _HomeState extends State<Home> {
     setState(() {
       alarms = Alarm.getAlarms();
       alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
+      alarmsList.add(alarmTest);
     });
   }
 

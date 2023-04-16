@@ -8,6 +8,10 @@ Future<void> main() async {
 
   await Alarm.init(showDebugLogs: true);
 
+  for (AlarmSettings alarm in Alarm.getAlarms()) {
+    Alarm.stop(alarm.id);
+  }
+
   runApp(const MyApp());
 }
 

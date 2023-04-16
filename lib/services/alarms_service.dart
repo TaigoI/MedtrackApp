@@ -12,7 +12,7 @@ class AlarmPrescriptionItem {
   bool vibrate;
   late int alarmPrescriptionItemId;
   late DateTime now;
-
+  List<int> alarmsIds = List.empty(growable: true); 
 
   // PrescriptionItem.date is # of days
 
@@ -37,10 +37,13 @@ class AlarmPrescriptionItem {
     // actual logic:
       // while(currentStamp.day < endDate.day) {
     for (int i = 0; i < 3; i++) {
-      currentStamp = currentStamp.add(const Duration(seconds: 15));
+      currentStamp = currentStamp.add(const Duration(seconds: 45));
+      
+      int currId = DateTime.now().millisecondsSinceEpoch % 100000;
+      alarmsIds.add(currId);
       
       final alarmSettings =  AlarmSettings(
-        id: DateTime.now().millisecondsSinceEpoch % 100000, 
+        id: currId, 
         dateTime: currentStamp, 
         assetAudioPath: audioPath,
         vibrate: vibrate,
