@@ -4,15 +4,17 @@ import 'package:flutter/material.dart';
 import '../components/prescription_item.dart';
 import 'package:medtrack/pages/home.dart';
 
+String formatTime(DateTime date) => 
+  "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+
 class RingScreen extends StatelessWidget {
   final AlarmSettings alarmSettings;
   late PrescriptionItem prescriptionItem;
 
   RingScreen({super.key, required this.alarmSettings}) {
-    prescriptionItem = 
-      alarmsList.firstWhere(
-        (element) => element.alarmsIds.contains(alarmSettings.id)
-      ).prescriptionItem;
+    prescriptionItem = alarmsList
+        .firstWhere((element) => element.alarmsIds.contains(alarmSettings.id))
+        .prescriptionItem;
   }
 
   @override
@@ -33,13 +35,14 @@ class RingScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Text("${prescriptionItem.medicine} • ${prescriptionItem.dose}",
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              formatTime(DateTime.now()),
+              style: Theme.of(context).textTheme.headlineLarge),
             const Text("🔔", style: TextStyle(fontSize: 50)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                RawMaterialButton(
+                OutlinedButton.icon(
                   //snooze
                   onPressed: () {
                     final now = DateTime.now();
@@ -50,17 +53,20 @@ class RingScreen extends StatelessWidget {
                                     .add(const Duration(minutes: 3))))
                         .then((_) => Navigator.pop(context));
                   },
-                  child: Text(
+                  icon: const Icon(Icons.snooze),
+                  label: Text(
                     "Soneca",
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
+      
                 ),
-                RawMaterialButton(
+                OutlinedButton.icon(
                     onPressed: () {
                       Alarm.stop(alarmSettings.id)
                           .then((_) => Navigator.pop(context));
                     },
-                    child: Text("Parar",
+                    icon: const Icon(Icons.stop),
+                    label: Text("Parar",
                         style: Theme.of(context).textTheme.titleLarge)),
               ],
             )
