@@ -1,11 +1,8 @@
-import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
+import 'package:alarm/alarm.dart';
 
-import '../components/prescription_item.dart';
+import 'package:medtrack/components/prescription_item.dart';
 import 'package:medtrack/pages/home.dart';
-
-String formatTime(DateTime date) => 
-  "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
 
 class RingScreen extends StatelessWidget {
   final AlarmSettings alarmSettings;
@@ -32,45 +29,49 @@ class RingScreen extends StatelessWidget {
         elevation: 4,
       ),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Text(
-              formatTime(DateTime.now()),
-              style: Theme.of(context).textTheme.headlineLarge),
-            const Text("🔔", style: TextStyle(fontSize: 50)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                OutlinedButton.icon(
-                  //snooze
-                  onPressed: () {
-                    final now = DateTime.now();
-                    Alarm.set(
-                            alarmSettings: alarmSettings.copyWith(
-                                dateTime: DateTime(now.year, now.month, now.day,
-                                        now.hour, now.minute, 0, 0)
-                                    .add(const Duration(minutes: 3))))
-                        .then((_) => Navigator.pop(context));
-                  },
-                  icon: const Icon(Icons.snooze),
-                  label: Text(
-                    "Soneca",
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-      
-                ),
-                OutlinedButton.icon(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text("${prescriptionItem.medicine} • x${prescriptionItem.dose}",
+                  style: Theme.of(context).textTheme.headlineMedium),
+              Icon(
+                Icons.alarm,
+                color: Theme.of(context).primaryColor,
+                size: 100,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  OutlinedButton.icon(
+                    //snooze
                     onPressed: () {
-                      Alarm.stop(alarmSettings.id)
+                      final now = DateTime.now();
+                      Alarm.set(
+                              alarmSettings: alarmSettings.copyWith(
+                                  dateTime: DateTime(now.year, now.month,
+                                          now.day, now.hour, now.minute, 0, 0)
+                                      .add(const Duration(minutes: 3))))
                           .then((_) => Navigator.pop(context));
                     },
-                    icon: const Icon(Icons.stop),
-                    label: Text("Parar",
-                        style: Theme.of(context).textTheme.titleLarge)),
-              ],
-            )
-          ],
+                    icon: const Icon(Icons.snooze),
+                    label: Text(
+                      "SONECA",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                      onPressed: () {
+                        Alarm.stop(alarmSettings.id)
+                            .then((_) => Navigator.pop(context));
+                      },
+                      icon: const Icon(Icons.stop),
+                      label: Text("PARAR",
+                          style: Theme.of(context).textTheme.titleLarge)),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );

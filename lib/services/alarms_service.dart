@@ -2,16 +2,12 @@ import 'package:alarm/alarm.dart';
 
 import '../components/prescription_item.dart';
 
-String formatTime(DateTime date) => 
-  "${date.hour.toString().padLeft(2, '0')}: ${date.minute.toString().padLeft(2, '0')}";
-
-
 class AlarmPrescriptionItem {
   PrescriptionItem prescriptionItem;
   String audioPath;
   bool vibrate;
   late int alarmPrescriptionItemId;
-  late DateTime now;
+  late DateTime startDate;
   List<int> alarmsIds = List.empty(growable: true); 
 
   // PrescriptionItem.date is # of days
@@ -21,23 +17,23 @@ class AlarmPrescriptionItem {
       required this.audioPath,
       required this.vibrate}) {
     alarmPrescriptionItemId = DateTime.now().millisecondsSinceEpoch % 100000;
-    now = DateTime.now();
+    startDate = DateTime.now();
   }
 
   void setPeriodicAlarm() async {
     final int hourlyPeriod = int.parse(prescriptionItem.time);
-    DateTime endDate = now.add(Duration(days: int.parse(prescriptionItem.date)));
+    DateTime endDate = startDate.add(Duration(days: int.parse(prescriptionItem.date)));
     final int timesPerDay = (24 / hourlyPeriod).ceil();
-    final int numberOfDays = endDate.difference(now).inDays;
+    final int numberOfDays = endDate.difference(startDate).inDays;
     
-    DateTime currentStamp = now;
+    DateTime currentStamp = startDate;
 
     print("hourly period: $hourlyPeriod | timesPerDay: $timesPerDay | numberOfDays: $numberOfDays");
 
     // actual logic:
       // while(currentStamp.day < endDate.day) {
-    for (int i = 0; i < 3; i++) {
-      currentStamp = currentStamp.add(const Duration(seconds: 45));
+    for (int i = 0; i < 1; i++) {
+      currentStamp = currentStamp.add(const Duration(seconds: 5));
       
       int currId = DateTime.now().millisecondsSinceEpoch % 100000;
       alarmsIds.add(currId);
@@ -47,9 +43,9 @@ class AlarmPrescriptionItem {
         dateTime: currentStamp, 
         assetAudioPath: audioPath,
         vibrate: vibrate,
-        loopAudio: true,
-        notificationTitle: "${formatTime(currentStamp)} | ${prescriptionItem.medicine}",
-        notificationBody: "${prescriptionItem.dosage} ${prescriptionItem.dosageUnit}"
+        loopAudio: false,
+        notificationTitle: "Hora do Remédio",
+        notificationBody: "${prescriptionItem.medicine} | ${prescriptionItem.dose}"
       );
 
       await Alarm.set(alarmSettings: alarmSettings); // nota: em caso de alarmes que passam do dia atual, o debug mostra a data errada

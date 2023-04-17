@@ -22,7 +22,6 @@ AlarmPrescriptionItem alarmTest =
 class Home extends StatefulWidget {
   Home({super.key});
 
-
   @override
   State<Home> createState() => _HomeState();
 }
@@ -47,6 +46,7 @@ class _HomeState extends State<Home> {
     setState(() {
       alarms = Alarm.getAlarms();
       alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
+      print('\nloaded alarms: $alarms\n');
       alarmsList.add(alarmTest);
     });
   }
