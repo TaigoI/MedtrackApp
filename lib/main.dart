@@ -8,9 +8,15 @@ Future<void> main() async {
 
   await Alarm.init(showDebugLogs: true);
 
+  await Alarm.setNotificationOnAppKillContent(
+    'Seus alarmes podem não tocar', 
+    'Você fechou o app. Por favor, abra-o novamente para que os alarmes toquem.'
+  );
+
   for (AlarmSettings alarm in Alarm.getAlarms()) {
-    Alarm.stop(alarm.id);
+    await Alarm.stop(alarm.id);
   }
+
 
   runApp(const MyApp());
 }

@@ -1,4 +1,5 @@
 import 'package:alarm/alarm.dart';
+import 'package:medtrack/components/prescription.dart';
 
 import '../components/prescription_item.dart';
 
@@ -6,7 +7,6 @@ class AlarmPrescriptionItem {
   PrescriptionItem prescriptionItem;
   String audioPath;
   bool vibrate;
-  late int alarmPrescriptionItemId;
   late DateTime startDate;
   List<int> alarmsIds = List.empty(growable: true); 
 
@@ -16,7 +16,6 @@ class AlarmPrescriptionItem {
       {required this.prescriptionItem,
       required this.audioPath,
       required this.vibrate}) {
-    alarmPrescriptionItemId = DateTime.now().millisecondsSinceEpoch % 100000;
     startDate = DateTime.now();
   }
 
@@ -35,7 +34,7 @@ class AlarmPrescriptionItem {
     for (int i = 0; i < 1; i++) {
       currentStamp = currentStamp.add(const Duration(seconds: 5));
       
-      int currId = DateTime.now().millisecondsSinceEpoch % 100000;
+      int currId = DateTime.now().millisecondsSinceEpoch % 1000;
       alarmsIds.add(currId);
       
       final alarmSettings =  AlarmSettings(
@@ -45,7 +44,7 @@ class AlarmPrescriptionItem {
         vibrate: vibrate,
         loopAudio: false,
         notificationTitle: "Hora do Remédio",
-        notificationBody: "${prescriptionItem.medicine} | ${prescriptionItem.dose}"
+        notificationBody: prescriptionItem.medicine
       );
 
       await Alarm.set(alarmSettings: alarmSettings); // nota: em caso de alarmes que passam do dia atual, o debug mostra a data errada
@@ -55,6 +54,29 @@ class AlarmPrescriptionItem {
       print("Novo alarme: ${alarm.id} [${alarm.dateTime}]"); // aqui é possível ver que os alarmes têm as datas certas
     }
   }
+}
+
+List<AlarmPrescriptionItem> getAlarmsFromPrescription(Prescription prescription) {
+  List<AlarmPrescriptionItem> alarmsList = List.empty(growable: true);
+  
+  String audioPath = 'sounds/mozart.mp3';
+  bool vibrate = true;
+
+  DateTime today = DateTime.now();
+  for (PrescriptionItem item in prescription.items) {
+    if (today.isAfter(today.add(
+        Duration(days: int.parse(item.date))
+      ))
+    ) {
+      continue;
+    }
+    
+    alarmsList.add(
+      AlarmPrescriptionItem(prescriptionItem: item, audioPath: audioPath, vibrate: vibrate)
+    );
+  }
+
+  return alarmsList;
 }
 
 void AlarmIn15Seconds() {
