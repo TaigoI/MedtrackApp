@@ -1,111 +1,96 @@
 import 'package:alarm/alarm.dart';
-import 'package:medtrack/components/prescription.dart';
 
 import '../components/prescription_item.dart';
 
-class AlarmPrescriptionItem {
-  PrescriptionItem prescriptionItem;
-  String audioPath;
-  bool vibrate;
-  late DateTime startDate;
-  List<int> alarmsIds = List.empty(growable: true); 
+  /**
+   * A ideia pra isso aqui é o seguinte:
+   * Há o problema de que o plugin enlouquece se tiver mais de uma alarme ao mesmo tempo
+   * e esse certamente será o caso; é muito normal que uma pessoa tome dois, três remédios ao mesmo tempo
+   * Além disso, surgiu a possibilidade de atribuir pessoas às receitas.
+   * Dessa forma, não só é possível tocar mais de um alarme ao mesmo tempo, mas vários alarmes 
+   * para várias receitas.
+   * Na prática, para mim, cada ponto no tempo só pode ter um alarme, ainda que haja 500 remédios
+   * para tomar ao mesmo tempo.
+   * Então, eu preciso conhecer esses pontos no tempo de antemão antes de setar o alarme.
+   * Preciso dar um jeito de, lendo os horários que o cara vai tomar o remédio, ver se já tem remédios setados 
+   * para aquele alarme. 
+   * A ideia, então, é deixar esse alarme dentro de um classes cujos campos são expandíveis (leia-se, os pacientes
+   * e os remédios podem entrar e sair a qualquer momento).
+   * Então, não é mais um remédio que tem um alarme numa hora, mas um alarme numa hora que tem os remédios 
+   *////
+class SingleAlarm {
+  DateTime timeStamp; // horário em que o alarme soará
+  late List<PrescriptionItem> items; // itens a serem tomados neste horário
+  String audioPath; // vem das configurações
+  List<int> alarmsIds = List.empty(growable: true);
 
-  // PrescriptionItem.date is # of days
-
-  AlarmPrescriptionItem(
-      {required this.prescriptionItem,
-      required this.audioPath,
-      required this.vibrate}) {
-    startDate = DateTime.now();
+  SingleAlarm ({required this.timeStamp, required this.audioPath, required PrescriptionItem item}) {
+    items = [item];
+    setAlarm();
   }
 
-  void setPeriodicAlarm() async {
-    final int hourlyPeriod = int.parse(prescriptionItem.time);
-    DateTime endDate = startDate.add(Duration(days: int.parse(prescriptionItem.date)));
-    final int timesPerDay = (24 / hourlyPeriod).ceil();
-    final int numberOfDays = endDate.difference(startDate).inDays;
-    
-    DateTime currentStamp = startDate;
+  void addItem(PrescriptionItem item) => items.add(item);
 
-    print("hourly period: $hourlyPeriod | timesPerDay: $timesPerDay | numberOfDays: $numberOfDays");
+  Future<void> setAlarm() async {
+    int id = DateTime.now().millisecondsSinceEpoch % 1000;
+    alarmsIds.add(id);
 
-    // actual logic:
-      // while(currentStamp.day < endDate.day) {
-    for (int i = 0; i < 1; i++) {
-      currentStamp = currentStamp.add(const Duration(seconds: 5));
-      
-      int currId = DateTime.now().millisecondsSinceEpoch % 1000;
-      alarmsIds.add(currId);
-      
-      final alarmSettings =  AlarmSettings(
-        id: currId, 
-        dateTime: currentStamp, 
-        assetAudioPath: audioPath,
-        vibrate: vibrate,
-        loopAudio: false,
-        notificationTitle: "Hora do Remédio",
-        notificationBody: prescriptionItem.medicine
-      );
-
-      await Alarm.set(alarmSettings: alarmSettings); // nota: em caso de alarmes que passam do dia atual, o debug mostra a data errada
-    }
-
-    for (AlarmSettings alarm in Alarm.getAlarms()) {
-      print("Novo alarme: ${alarm.id} [${alarm.dateTime}]"); // aqui é possível ver que os alarmes têm as datas certas
-    }
-  }
-}
-
-List<AlarmPrescriptionItem> getAlarmsFromPrescription(Prescription prescription) {
-  List<AlarmPrescriptionItem> alarmsList = List.empty(growable: true);
-  
-  String audioPath = 'sounds/mozart.mp3';
-  bool vibrate = true;
-
-  DateTime today = DateTime.now();
-  for (PrescriptionItem item in prescription.items) {
-    if (today.isAfter(today.add(
-        Duration(days: int.parse(item.date))
-      ))
-    ) {
-      continue;
-    }
-    
-    alarmsList.add(
-      AlarmPrescriptionItem(prescriptionItem: item, audioPath: audioPath, vibrate: vibrate)
+    final alarmSettings =  AlarmSettings(
+      id: id, 
+      dateTime: timeStamp, 
+      assetAudioPath: audioPath,
+      vibrate: true,
+      loopAudio: false,
+      notificationTitle: "Hora dos Remédios",
+      notificationBody: "Abra o app para confirmar que tomou"
     );
-  }
 
-  return alarmsList;
+    await Alarm.set(alarmSettings: alarmSettings);
+  }
 }
 
-void AlarmIn15Seconds() {
-  final now = DateTime.now();
-  final id = DateTime.now().millisecondsSinceEpoch % 100000;
-
-  final alarmSettings = AlarmSettings(
-    id: id,
-    dateTime: now.add(const Duration(seconds: 15)),
-    assetAudioPath: 'sounds/mozart.mp3',
-    loopAudio: true,
-    vibrate: true,
-    notificationTitle: 'Exemplo de Alarme',
-    notificationBody: 'Alarme ($id) está tocando',
+void alarmFromPrescriptionItem(List<SingleAlarm> alarms, PrescriptionItem prescriptionItem, DateTime goalTime) async {
+  print("entrei na funcao");
+  DateTime endDate = prescriptionItem.initialDosage.add(
+    Duration(minutes: (prescriptionItem.occurences * prescriptionItem.interval))
   );
 
-  Alarm.set(alarmSettings: alarmSettings);
+  print("endDate: [$endDate]");
+
+  DateTime currentStamp = prescriptionItem.initialDosage;
+  bool timeStampTaken;
+  // DateTime goal = DateTime.now().add(const Duration(seconds: 30));
+  
+  // while (currentStamp.isBefore(endDate)) {
+  for (int i = 0; i < 1; i++) {
+    timeStampTaken = false;
+
+    for (SingleAlarm alarm in alarms) {
+      if (alarm.timeStamp.compareTo(goalTime) == 0) {
+        alarm.addItem(prescriptionItem);
+        timeStampTaken = true;
+        break;
+      }
+    }
+
+    if (!timeStampTaken) {
+      alarms.add(
+        SingleAlarm(audioPath: 'sounds/mozart.mp3', timeStamp: goalTime, item: prescriptionItem)
+      );
+    } 
+    
+    currentStamp = currentStamp.add(Duration(minutes: prescriptionItem.interval));
+  }
 }
 
-void stopAlarms() {
+void stopAllAlarms() async {
   for (AlarmSettings alarm in Alarm.getAlarms()) {
-    Alarm.stop(alarm.id);
+    await Alarm.stop(alarm.id);
   }
 }
 
 void printAlarms() {
-  print("\nAlarmes:");
   for (AlarmSettings alarm in Alarm.getAlarms()) {
-      print("Alarme: ${alarm.id} [${alarm.dateTime}]"); // aqui é possível ver que os alarmes têm as datas certas
+    print("alarme ${alarm.id}: [${alarm.dateTime}]");
   }
-  print("");
 }

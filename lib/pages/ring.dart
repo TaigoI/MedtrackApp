@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
+
 import 'package:alarm/alarm.dart';
 
-import 'package:medtrack/components/prescription_item.dart';
 import 'package:medtrack/pages/home.dart';
-
+import 'package:medtrack/services/alarms_service.dart';
+import 'package:medtrack/components/prescription_item.dart';
 class RingScreen extends StatelessWidget {
   final AlarmSettings alarmSettings;
-  late PrescriptionItem prescriptionItem;
+  late SingleAlarm singleAlarm;
+  // single prescription item here
 
   RingScreen({super.key, required this.alarmSettings}) {
-    prescriptionItem = alarmsList
-        .firstWhere((element) => element.alarmsIds.contains(alarmSettings.id))
-        .prescriptionItem;
+    singleAlarm = alarmsList
+        .firstWhere((element) => element.alarmsIds.contains(alarmSettings.id));
+  }
+
+  Widget medicineNameText(BuildContext context, PrescriptionItem item) {
+    return Text(
+      "${item.medicationName} • ${item.doseAmount}${item.doseUnit}",
+      style: Theme.of(context).textTheme.headlineLarge);
   }
 
   @override
@@ -33,12 +40,8 @@ class RingScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text("${prescriptionItem.medicine} • x${prescriptionItem.dose}",
-                  style: Theme.of(context).textTheme.headlineMedium),
-              Icon(
-                Icons.alarm,
-                color: Theme.of(context).primaryColor,
-                size: 100,
+              Column(
+                children: singleAlarm.items.map((e) => medicineNameText(context, e)).toList()
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -70,10 +73,22 @@ class RingScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleLarge)),
                 ],
               )
-            ],
+              ],
           ),
         ),
       ),
     );
   }
 }
+
+/**
+ * Text("${prescriptionItem.medicine} • x${prescriptionItem.dose}",
+                  style: Theme.of(context).textTheme.headlineMedium),
+              Icon(
+                Icons.alarm,
+                color: Theme.of(context).primaryColor,
+                size: 100,
+              ),
+              
+            ],
+ */

@@ -1,20 +1,30 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:medtrack/components/prescription_item.dart';
 
 class Prescription extends StatefulWidget {
-  String title;
-  List<PrescriptionItem> items;
+  final String pacientName;
+  final Function deleteFunction;
+  final List<PrescriptionItem> items;
 
-  Prescription({super.key, required this.title, required this.items});
+  const Prescription({super.key, required this.pacientName, required this.items, required this.deleteFunction});
 
-  factory Prescription.fromJson(Map<String, dynamic> json) {
+  factory Prescription.fromJson(Function deleteFunction, Map<String, dynamic> json) {
     return Prescription(
-      title: json['title'],
+      deleteFunction: deleteFunction,
+      pacientName: json['pacientName'],
       items: (json['items'] as List)
           .map((json) => PrescriptionItem.fromJson(json))
           .toList(),
     );
+  }
+
+  toJSONEncodable() {
+    Map<String, dynamic> m = {};
+    m['pacientName'] = pacientName;
+    m['items'] = items.map((item) {
+      return item.toJSONEncodable();
+    }).toList();
+    return m;
   }
 
   @override
@@ -35,11 +45,11 @@ class _PrescriptionState extends State<Prescription> {
             child: Row(
               children: <Widget>[
                 Text(
-                  widget.title,
+                  widget.pacientName,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Spacer(),
-                IconButton(onPressed: () { }, icon: const Icon(Icons.more_vert)),
+                IconButton(onPressed: () { widget.deleteFunction(widget.key); }, icon: const Icon(Icons.more_vert)),
               ],
             ),
           ),
