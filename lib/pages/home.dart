@@ -45,6 +45,138 @@ List<PrescriptionItem> testItems = [
     occurences: 5,
     initialDosage: DateTime.now().add(const Duration(seconds: 15)),
     ),
+  PrescriptionItem(
+    medicationName: "Trembolona", 
+    doseAmount: "500", 
+    doseUnit: "MG", 
+    dosage: "100", 
+    dosageUnit: "M", 
+    interval: 15, 
+    occurences: 5,
+    initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+    ),
+
+  PrescriptionItem(
+    medicationName: "Durateston", 
+    doseAmount: "500", 
+    doseUnit: "MG", 
+    dosage: "100", 
+    dosageUnit: "M", 
+    interval: 15, 
+    occurences: 5,
+    initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+    
+    ),
+
+  PrescriptionItem(
+    medicationName: "Deca Durabolin", 
+    doseAmount: "500", 
+    doseUnit: "MG", 
+    dosage: "100", 
+    dosageUnit: "M", 
+    interval: 15, 
+    occurences: 5,
+    initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+    ),
+  PrescriptionItem(
+    medicationName: "Trembolona", 
+    doseAmount: "500", 
+    doseUnit: "MG", 
+    dosage: "100", 
+    dosageUnit: "M", 
+    interval: 15, 
+    occurences: 5,
+    initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+    ),
+
+  PrescriptionItem(
+    medicationName: "Durateston", 
+    doseAmount: "500", 
+    doseUnit: "MG", 
+    dosage: "100", 
+    dosageUnit: "M", 
+    interval: 15, 
+    occurences: 5,
+    initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+    
+    ),
+
+  PrescriptionItem(
+    medicationName: "Deca Durabolin", 
+    doseAmount: "500", 
+    doseUnit: "MG", 
+    dosage: "100", 
+    dosageUnit: "M", 
+    interval: 15, 
+    occurences: 5,
+    initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+    ),
+  // PrescriptionItem(
+  //   medicationName: "Trembolona", 
+  //   doseAmount: "500", 
+  //   doseUnit: "MG", 
+  //   dosage: "100", 
+  //   dosageUnit: "M", 
+  //   interval: 15, 
+  //   occurences: 5,
+  //   initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+  //   ),
+
+  // PrescriptionItem(
+  //   medicationName: "Durateston", 
+  //   doseAmount: "500", 
+  //   doseUnit: "MG", 
+  //   dosage: "100", 
+  //   dosageUnit: "M", 
+  //   interval: 15, 
+  //   occurences: 5,
+  //   initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+    
+  //   ),
+
+  // PrescriptionItem(
+  //   medicationName: "Deca Durabolin", 
+  //   doseAmount: "500", 
+  //   doseUnit: "MG", 
+  //   dosage: "100", 
+  //   dosageUnit: "M", 
+  //   interval: 15, 
+  //   occurences: 5,
+  //   initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+  //   ),
+  // PrescriptionItem(
+  //   medicationName: "Trembolona", 
+  //   doseAmount: "500", 
+  //   doseUnit: "MG", 
+  //   dosage: "100", 
+  //   dosageUnit: "M", 
+  //   interval: 15, 
+  //   occurences: 5,
+  //   initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+  //   ),
+
+  // PrescriptionItem(
+  //   medicationName: "Durateston", 
+  //   doseAmount: "500", 
+  //   doseUnit: "MG", 
+  //   dosage: "100", 
+  //   dosageUnit: "M", 
+  //   interval: 15, 
+  //   occurences: 5,
+  //   initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+    
+  //   ),
+
+  // PrescriptionItem(
+  //   medicationName: "Deca Durabolin", 
+  //   doseAmount: "500", 
+  //   doseUnit: "MG", 
+  //   dosage: "100", 
+  //   dosageUnit: "M", 
+  //   interval: 15, 
+  //   occurences: 5,
+  //   initialDosage: DateTime.now().add(const Duration(seconds: 15)),
+  //   ),
 ];
 
 

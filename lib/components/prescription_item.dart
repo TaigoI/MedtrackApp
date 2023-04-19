@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:medtrack/enums/dosage_unit.dart';
 
 class PrescriptionItem extends StatefulWidget {
   String medicationName; //nome do remédio. "Paracetamol"

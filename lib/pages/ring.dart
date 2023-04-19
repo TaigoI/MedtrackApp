@@ -29,26 +29,6 @@ class _RingScreenState extends State<RingScreen> {
     _checklist = List.filled(widget.singleAlarm.items.length, false);
   }
 
-  Widget medicineNameText(BuildContext context, PrescriptionItem item) {
-    return Card(
-      shape: RoundedRectangleBorder(
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline,
-        ),
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-      ),
-      elevation: 6,
-      child: Row(
-        children: [
-          Text(
-            "${item.medicationName} * ${item.doseAmount} ${item.doseUnit}",
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget medicationCheckBox(
       BuildContext context, PrescriptionItem item, int idx) {
     return CheckboxListTile(
@@ -89,32 +69,38 @@ class _RingScreenState extends State<RingScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Container(
-                padding: const EdgeInsets.all(0),
-                child: Card(
-                    color: Theme.of(context).colorScheme.background,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      borderRadius: const BorderRadius.all(Radius.circular(12)),
-                    ),
-                    elevation: 3,
-                    child: Column(children: [
-                      const Center(
-                        widthFactor: 2,
-                        heightFactor: 2,
-                        child: Text("RECEITA DO FULANO"),
-                      ),
-                      Column(
-                        children: widget.singleAlarm.items
-                            .asMap()
-                            .entries
-                            .map((item) => medicationCheckBox(
-                                context, item.value, item.key))
-                            .toList(),
-                      )
-                    ])),
-              ),
+                  constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height - 200),
+                  padding: const EdgeInsets.all(0),
+                  child: ListView(
+                    children: [
+                      Card(
+                          color: Theme.of(context).colorScheme.background,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(12)),
+                          ),
+                          elevation: 3,
+                          child: Column(children: [
+                            const Center(
+                              widthFactor: 2,
+                              heightFactor: 2,
+                              child: Text("RECEITA DO FULANO"),
+                            ),
+                            Column(
+                              children: widget.singleAlarm.items
+                                  .asMap()
+                                  .entries
+                                  .map((item) => medicationCheckBox(
+                                      context, item.value, item.key))
+                                  .toList(),
+                            )
+                          ])),
+                    ],
+                  )),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -148,7 +134,8 @@ class _RingScreenState extends State<RingScreen> {
                                                               0)
                                                           .add(const Duration(
                                                               minutes: 3))))
-                                          .then((_) => Navigator.pushNamed(context, '/'));
+                                          .then((_) => Navigator.pushNamed(
+                                              context, '/'));
                                     },
                                     child: const Text("Confirmar"))
                               ],

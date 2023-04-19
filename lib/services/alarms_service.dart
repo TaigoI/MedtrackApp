@@ -50,7 +50,6 @@ class SingleAlarm {
 }
 
 void alarmFromPrescriptionItem(List<SingleAlarm> alarms, PrescriptionItem prescriptionItem, DateTime goalTime) async {
-  print("entrei na funcao");
   DateTime endDate = prescriptionItem.initialDosage.add(
     Duration(minutes: (prescriptionItem.occurences * prescriptionItem.interval))
   );
