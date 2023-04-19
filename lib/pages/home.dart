@@ -166,9 +166,7 @@ class _HomeState extends State<Home> {
           leading: IconButton(
             icon: const Icon(Icons.menu_rounded),
             onPressed: () {
-              print("tocado");
               for (PrescriptionItem item in testItems) {
-                print("próximo item: ${item.medicationName}");
                 alarmFromPrescriptionItem(alarmsList, item, goalTime);
               }
               printAlarms();
