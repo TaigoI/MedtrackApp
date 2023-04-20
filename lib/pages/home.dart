@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:localstorage/localstorage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/components/prescription.dart';
 
 import '../components/prescription_item.dart';
@@ -11,56 +15,35 @@ class Home extends StatefulWidget {
   _HomeState createState() => _HomeState();
 }
 
-class PrescriptionList {
-  List<Prescription> items = [];
-
-  toJSONEncodable() {
-    return items.map((item) {
-      return item.toJSONEncodable();
-    }).toList();
-  }
-}
-
 class _HomeState extends State<Home> {
-  final list = PrescriptionList();
-  final storage = LocalStorage('prescriptions.json');
-  int counter = 1;
+  final _items = Hive.box('items');
 
   _addItem(String title) {
-    final item = Prescription(
-      key: UniqueKey(),
-      title: 'Prescription $counter',
-      items: [
-        PrescriptionItem(
-            medicationName: 'Medication Name', doseAmount: '1', doseUnit: 'ML', dosage: '1', dosageUnit: 'ML', frequency: '1', duration: '1'),
-      ],
-      deleteFunction: _deleteItem,
+    var prescriptionModel = PrescriptionModel(
+      key: UniqueKey().toString(),
+      doctorName: "Médico do Taígo",
+      doctorRegistration: "0000 CRM-AL"
     );
+    //prescriptionModel.persist();
 
-    setState(() {
-      counter += 1;
-      list.items.add(item);
-      _saveToStorage();
+    var itemModel = PrescriptionItemModel.fromJson({
+      "key": UniqueKey().toString(),
+      "patientName": "Taígo Pedrosa",
+      "medicationName": "Paracetamol",
+      "doseAmount": 250,
+      "doseUnit": "MG/ML",
+      "dosageAmount": 5,
+      "dosageUnit": "ML",
+      "interval": 60,
+      "occurrences": 10,
+      "comments": "",
+      "initialDosage": "2023-12-12 00:00:00"
     });
-  }
-
-  _deleteItem(UniqueKey key) {
-    setState(() {
-      list.items.removeWhere((element) => element.key == key);
-      _saveToStorage();
-    });
-  }
-
-  _saveToStorage() {
-    storage.setItem('list', list.toJSONEncodable());
+    itemModel.persist();
   }
 
   _clearStorage() async {
-    await storage.clear();
-    setState(() {
-      counter = 1;
-      list.items = storage.getItem('list') ?? [];
-    });
+    _items.deleteFromDisk();
   }
 
   @override
@@ -81,44 +64,92 @@ class _HomeState extends State<Home> {
           centerTitle: true,
           elevation: 4,
         ),
-        body: Container(
-            padding: const EdgeInsets.all(20),
-            alignment: Alignment.center,
-            child: Column(
-              children: [
-                Expanded(
-                    child: ListView.builder(
-                        itemCount: list.items.length,
-                        itemBuilder: (context, index) {
-                          return list.items[index];
-                        }))
-              ],
-            )
+        body: ValueListenableBuilder(
+          valueListenable: _items.listenable(),
+          builder: (context, Box box, widget) {
+            if(box.isEmpty){
+              return const Center(
+                child: Text('Empty'),
+              );
+            } else {
+              return Container(
+                padding: const EdgeInsets.all(20),
+                alignment: Alignment.center,
+                child: ListView.builder(
+                  itemCount: box.length,
+                  itemBuilder: (context, index) {
+                    final item = jsonDecode(box.getAt(index));
+                    return PrescriptionItem.fromJson(item);
+                  },
+                ),
+              );
+            }
+          },
         ),
         floatingActionButton: Container(
           child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              FloatingActionButton(
-                onPressed: () {
-                  _addItem('Sample Prescription');
-                },
-                child: const Icon(Icons.add),
-              ),
-              const SizedBox(height: 10),
-              FloatingActionButton(
-                onPressed: () {
-                  _clearStorage();
-                },
-                child: const Icon(Icons.delete),
-              ),
-            ]
+              children: <Widget>[
+                  FloatingActionButton(
+                    onPressed: () {
+                      _addItem('Sample Prescription');
+                    },
+                    child: const Icon(Icons.add),
+                  ),
+                  const SizedBox(height: 10),
+                  FloatingActionButton(
+                    onPressed: () {
+                      _clearStorage();
+                    },
+                    child: const Icon(Icons.delete),
+                  ),
+              ]
           )
         )
     );
   }
 
 }
+
+/*
+
+FutureBuilder(
+              future: storage.ready,
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if (snapshot.data == null) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                if (!initialized) {
+                  var objects = storage.getItem('list');
+                  if (objects != null) {
+                    List<Prescription> prescriptions = [];
+                    for(var object in objects as List){
+                      Prescription value = Prescription.fromJson(_deleteItem, object);
+                      prescriptions.add(value);
+                    }
+                    list.items = prescriptions;
+                  }
+                  initialized = true;
+                }
+
+                return Column(
+                  children: [
+                    Expanded(
+                        child: ListView.builder(
+                            itemCount: list.items.length,
+                            itemBuilder: (context, index) {
+                              return list.items[index];
+                            }))
+                  ],
+                );
+              }
+            )
+
+*/
+
 
 /*
             FloatingActionButton(

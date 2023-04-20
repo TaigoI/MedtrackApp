@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'pages/home.dart';
 import 'theme.dart';
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() async {
+  await Hive.initFlutter();
+  await Hive.openBox('items');
   runApp(const MyApp());
 }
 

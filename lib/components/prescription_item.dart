@@ -1,125 +1,154 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:medtrack/enums/dosage_unit.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-class PrescriptionItem extends StatefulWidget {
+
+class PrescriptionItemModel {
+  static final _items = Hive.box('items');
+
+  String key;
   String medicationName; //nome do remédio. "Paracetamol"
   String doseAmount; //posologia do remédio. "500"
   String doseUnit; //unidade da posologia do remédio. "MG/ML"
-  var dosage; //quantidade do remédio que devem ser consumidas por vez. "5"
-  var dosageUnit; //unidade da quantidade de remédio que deve ser consumida por vez. "ML"
-  var interval; //quantidade, em minutos, entre 2 doses
-  var occurences; //quantidade total de doses que o paciente irá consumir pra esta medicação
+  int dosageAmount; //quantidade do remédio que devem ser consumidas por vez. "5"
+  String dosageUnit; //unidade da quantidade de remédio que deve ser consumida por vez. "ML"
+  int interval; //quantidade, em minutos, entre 2 doses
+  int occurrences; //quantidade total de doses que o paciente irá consumir pra esta medicação
   String comments; //orientações gerais livres para o uso do medicamento a critério do médico
-  var initialDosage; //primeira vez que o paciente tomou o remédio
-  
-  PrescriptionItem(
-      {super.key, required this.medicationName, required this.doseAmount, required this.doseUnit,
-      required this.dosage, required this.dosageUnit, required this.frequency, required this.duration});
+  DateTime initialDosage; //primeira vez que o paciente tomou o remédio
+  String patientName;
 
-  factory PrescriptionItem.fromJson(Map<String, dynamic> json) {
-    var prescriptionItem = PrescriptionItem(
-      medicationName: json['medicationName'].toString(),
-      doseAmount: json['doseAmount'].toString(),
-      doseUnit: json['doseUnit'].toString(),
-      dosage: json['dosage'].toString(),
-      dosageUnit: json['dosageUnit'].toString(),
-      frequency: json['frequency'].toString(),
-      duration: json['duration'].toString(),
+  PrescriptionItemModel({
+    required this.key,
+    required this.patientName,
+    required this.medicationName,
+    required this.doseAmount,
+    required this.doseUnit,
+    required this.dosageAmount,
+    required this.dosageUnit,
+    required this.interval,
+    required this.occurrences,
+    required this.comments,
+    required this.initialDosage
+  });
+
+  persist(){
+    _items.put(key, toJSON());
+  }
+
+  delete(){
+    _items.delete(key);
+  }
+
+  factory PrescriptionItemModel.fromStorage(String key) {
+    var item = _items.get(key);
+    return PrescriptionItemModel.fromJson(item!);
+  }
+
+  factory PrescriptionItemModel.fromJson(Map<String, dynamic> json) {
+    var prescriptionItem = PrescriptionItemModel(
+        key: json.containsKey('key') ? json['key'] : UniqueKey().toString(),
+        patientName: json['patientName'].toString(),
+        medicationName: json['medicationName'].toString(),
+        doseAmount: json['doseAmount'].toString(),
+        doseUnit: json['doseUnit'].toString(),
+        dosageAmount: int.parse(json['dosageAmount'].toString()),
+        dosageUnit: json['dosageUnit'].toString(),
+        interval: int.parse(json['interval'].toString()),
+        occurrences: int.parse(json['occurrences'].toString()),
+        comments: json['comments'].toString(),
+        initialDosage: DateTime.parse(json['initialDosage'].toString())
     );
     return prescriptionItem;
   }
 
-  toJSONEncodable() {
+  toJSON() {
     Map<String, dynamic> json = {
+      'key': key,
+      'patientName' : patientName,
       'medicationName': medicationName,
       'doseAmount': doseAmount,
       'doseUnit': doseUnit,
-      'dosage': dosage,
+      'dosageAmount': dosageAmount,
       'dosageUnit': dosageUnit,
-      'frequency': frequency,
-      'duration': duration,
+      'interval': interval,
+      'occurrences': occurrences,
+      'comments': comments,
+      'initialDosage': initialDosage.toString(),
     };
-    return json;
+    return jsonEncode(json);
   }
 
-  @override
-  State<StatefulWidget> createState() => _PrescriptionState();
 }
 
-//              PrescriptionChip(icon: Icons.update, text: "${widget.frequency}h"),
-class _PrescriptionState extends State<PrescriptionItem> {
+class PrescriptionItem extends StatefulWidget {
+
+  final PrescriptionItemModel model;
+  const PrescriptionItem({super.key, required this.model});
+
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Text("${widget.medicationName} • ${widget.doseAmount} ${widget.doseUnit}",
-                style: Theme.of(context).textTheme.bodyMedium)
-          ],
-        ),
-        SizedBox(
-          height: 40,
-          child: ListView(
-            padding: EdgeInsets.zero,
-            scrollDirection: Axis.horizontal,
-            children: [
-              PrescriptionChip(
-                  icon: Icons.medication,
-                  text: "x${widget.dosage}"),
-              PrescriptionChip(
-                  icon: Icons.calendar_today, text: "Por ${widget.duration} dias"),
-            ],
-          ),
-        )
-      ],
+  State<StatefulWidget> createState() => _PrescriptionItemState();
+
+  factory PrescriptionItem.fromJson(Map<String, dynamic> json){
+    if(!json.containsKey('key')) {
+      json['key'] = UniqueKey().toString();
+    }
+
+    return PrescriptionItem(
+        key: ValueKey(json['key']),
+        model: PrescriptionItemModel.fromJson(json),
     );
   }
+
 }
 
-class PrescriptionChip extends StatefulWidget {
-  final IconData icon;
-  final String text;
+class _PrescriptionItemState extends State<PrescriptionItem> {
+  bool edit = false;
 
-  const PrescriptionChip({
-    super.key,
-    required this.icon,
-    required this.text,
-  });
-
-  @override
-  State<StatefulWidget> createState() => _PrescriptionChipState();
-}
-
-class _PrescriptionChipState extends State<PrescriptionChip> {
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colors = Theme.of(context).colorScheme;
     return Card(
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-        elevation: 6,
-        child: Container(
-            padding: const EdgeInsets.only(
-                left: 8.0, right: 16.0, top: 6.0, bottom: 6.0),
-            child: Row(
-              children: <Widget>[
-                Icon(
-                  widget.icon,
-                  size: 18,
-                  color: Theme.of(context).iconTheme.color,
-                ),
-                const SizedBox(
-                  width: 8,
-                ),
-                Text(widget.text,
-                    style: Theme.of(context).textTheme.titleSmall),
+      elevation: 4,
+      child: Column(
+          children: [
+            Container(
+              margin:
+              const EdgeInsets.only(top: 12, bottom: 12, left: 16, right: 4),
+              child: Row(
+                children: <Widget>[
+                  Text(
+                    "${widget.model.medicationName} - ${widget.model.dosageAmount} ${widget.model.dosageUnit}",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const Spacer(),
+                  IconButton(onPressed: () { widget.model.delete(); }, icon: const Icon(Icons.delete)),
+                ],
+              ),
+            ),
+            Text(
+                widget.model.patientName,
+                style: Theme.of(context).textTheme.bodyMedium
+            ),
+            Text(
+                "Tomar ${widget.model.doseAmount} ${widget.model.doseUnit}",
+                style: Theme.of(context).textTheme.bodyMedium
+            ),
+            const SizedBox(height: 3),
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Chip(label: Text("00:00"), deleteIcon: Icon(Icons.close),),
+                SizedBox(width: 4),
+                Chip(label: Text("00:00+1"), deleteIcon: Icon(Icons.close),),
+                SizedBox(width: 4),
+                Chip(label: Text("00:00+2"), deleteIcon: Icon(Icons.close),),
               ],
-            )));
+            )
+          ],
+        )
+    );
   }
 }
