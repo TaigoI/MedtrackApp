@@ -1,17 +1,59 @@
-import 'package:flutter/material.dart';
-import 'package:medtrack/components/prescription_item.dart';
+class PrescriptionModel {
 
+  String key;
+  String doctorName;
+  String doctorRegistration; //ex.: 7156 CRM-AL
+
+  PrescriptionModel({
+    required this.key,
+    required this.doctorName,
+    required this.doctorRegistration,
+  });
+
+  /*persist(){
+    //collection.doc(key).set(toJSON());
+  }
+
+  delete(){
+    //collection.doc(key).set(toJSON());
+  }
+
+  static Future<PrescriptionModel> fromStorage(String key) async {
+    var item = await collection.doc(key).get();
+    return PrescriptionModel.fromJson(item!, key);
+  }*/
+
+  factory PrescriptionModel.fromJson(Map<String, dynamic> json, String key) {
+    var prescription = PrescriptionModel(
+        key: key,
+        doctorName: json['doctorName'].toString(),
+        doctorRegistration: json['doctorRegistration'].toString(),
+    );
+    return prescription;
+  }
+
+  toJSON() {
+    Map<String, dynamic> json = {
+      "key": key,
+      "doctorName": doctorName,
+      "doctorRegistration": doctorRegistration,
+    };
+    return json;
+  }
+
+}
+
+/*
 class Prescription extends StatefulWidget {
-  final String pacientName;
-  final Function deleteFunction;
+  final PrescriptionModel model;
   final List<PrescriptionItem> items;
 
-  const Prescription({super.key, required this.pacientName, required this.items, required this.deleteFunction});
+  const Prescription({super.key, required this.title, required this.items, required this.deleteFunction});
 
   factory Prescription.fromJson(Function deleteFunction, Map<String, dynamic> json) {
     return Prescription(
       deleteFunction: deleteFunction,
-      pacientName: json['pacientName'],
+      title: json['title'],
       items: (json['items'] as List)
           .map((json) => PrescriptionItem.fromJson(json))
           .toList(),
@@ -20,7 +62,7 @@ class Prescription extends StatefulWidget {
 
   toJSONEncodable() {
     Map<String, dynamic> m = {};
-    m['pacientName'] = pacientName;
+    m['title'] = title;
     m['items'] = items.map((item) {
       return item.toJSONEncodable();
     }).toList();
@@ -45,7 +87,7 @@ class _PrescriptionState extends State<Prescription> {
             child: Row(
               children: <Widget>[
                 Text(
-                  widget.pacientName,
+                  widget.title,
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Spacer(),
@@ -61,3 +103,4 @@ class _PrescriptionState extends State<Prescription> {
     );
   }
 }
+*/

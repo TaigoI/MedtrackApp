@@ -20,16 +20,23 @@ import '../components/prescription_item.dart';
    *////
 class SingleAlarm {
   DateTime timeStamp; // horário em que o alarme soará
-  late List<PrescriptionItem> items; // itens a serem tomados neste horário
+  late Map<String, List<PrescriptionItemModel>> items = {}; // itens a serem tomados neste horário
   String audioPath; // vem das configurações
   List<int> alarmsIds = List.empty(growable: true);
 
-  SingleAlarm ({required this.timeStamp, required this.audioPath, required PrescriptionItem item}) {
-    items = [item];
+  SingleAlarm ({required this.timeStamp, required this.audioPath, required PrescriptionItemModel item}) {
+    items[item.patientName] = [item];
     setAlarm();
   }
 
-  void addItem(PrescriptionItem item) => items.add(item);
+  void addItem(PrescriptionItemModel item) {
+    if (items.containsKey(item.patientName)) {
+      items[item.patientName]!.add(item);
+    }
+    else {
+      items[item.patientName] = [item];
+    }
+  }
 
   Future<void> setAlarm() async {
     int id = DateTime.now().millisecondsSinceEpoch % 1000;
@@ -49,9 +56,9 @@ class SingleAlarm {
   }
 }
 
-void alarmFromPrescriptionItem(List<SingleAlarm> alarms, PrescriptionItem prescriptionItem, DateTime goalTime) async {
+void alarmFromPrescriptionItem(List<SingleAlarm> alarms, PrescriptionItemModel prescriptionItem, DateTime goalTime) async {
   DateTime endDate = prescriptionItem.initialDosage.add(
-    Duration(minutes: (prescriptionItem.occurences * prescriptionItem.interval))
+    Duration(minutes: (prescriptionItem.occurrences * prescriptionItem.interval))
   );
 
   print("endDate: [$endDate]");

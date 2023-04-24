@@ -20,32 +20,76 @@ class RingScreen extends StatefulWidget {
 }
 
 class _RingScreenState extends State<RingScreen> {
-  late List<bool> _checklist;
-  bool showSkipAlert = false;
+  Map<String, List<bool>> _checklist = {};
 
   @override
   void initState() {
     super.initState();
-    _checklist = List.filled(widget.singleAlarm.items.length, false);
+    widget.singleAlarm.items.forEach((patientName, itemsList) {
+      _checklist[patientName] = List.filled(itemsList.length, false);
+    });
   }
 
   Widget medicationCheckBox(
-      BuildContext context, PrescriptionItem item, int idx) {
+      BuildContext context, PrescriptionItemModel item, int idx, String patientName) {
     return CheckboxListTile(
-      value: _checklist[idx],
+      value: _checklist[patientName]![idx],
       onChanged: (bool? value) {
-        setState(() => _checklist[idx] = value!);
+        setState(() => _checklist[patientName]![idx] = value!);
       },
       title: Text(
         "${item.medicationName} * ${item.doseAmount}${item.doseUnit}",
-        // style: Theme.of(context).textTheme.bodyLarge
       ),
       secondary: const Icon(Icons.medication_outlined),
     );
   }
 
+  Widget patientCard(BuildContext context, String patientName, List<PrescriptionItemModel> items) {
+    return Card(
+        color: Theme.of(context).colorScheme.background,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+        ),
+        elevation: 3,
+        child: Column(children: [
+          Center(
+            widthFactor: 2,
+            heightFactor: 2,
+            child: Text(
+              patientName,
+              style: Theme.of(context).textTheme.headlineSmall
+            ),
+          ),
+          Column(
+            children: items
+                .asMap()
+                .entries
+                .map((item) => medicationCheckBox(context, item.value, item.key, patientName))
+                .toList(),
+          )
+        ]));
+  }
+
+  List<Widget> getPatientsCards(
+      BuildContext context, Map<String, List<PrescriptionItemModel>> items) {
+    List<Widget> cards = [];
+    for (String name in items.keys) {
+      cards.add(patientCard(context, name, items[name]!));
+    }
+
+    return cards;
+  }
+
   bool checkedEverything() {
-    return _checklist.every((element) => element == true);
+    for (String key in _checklist.keys) {
+      if (!_checklist[key]!.every((element) => element == true)) {
+        return false;
+      }
+    } 
+    return true; 
   }
 
   @override
@@ -73,34 +117,8 @@ class _RingScreenState extends State<RingScreen> {
                       maxHeight: MediaQuery.of(context).size.height - 200),
                   padding: const EdgeInsets.all(0),
                   child: ListView(
-                    children: [
-                      Card(
-                          color: Theme.of(context).colorScheme.background,
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(12)),
-                          ),
-                          elevation: 3,
-                          child: Column(children: [
-                            const Center(
-                              widthFactor: 2,
-                              heightFactor: 2,
-                              child: Text("RECEITA DO FULANO"),
-                            ),
-                            Column(
-                              children: widget.singleAlarm.items
-                                  .asMap()
-                                  .entries
-                                  .map((item) => medicationCheckBox(
-                                      context, item.value, item.key))
-                                  .toList(),
-                            )
-                          ])),
-                    ],
-                  )),
+                      children:
+                          getPatientsCards(context, widget.singleAlarm.items))),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
