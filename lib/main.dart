@@ -5,7 +5,9 @@ import 'theme.dart';
 
 void main() async {
   await Hive.initFlutter();
-  await Hive.openBox('items');
+  await Hive.openBox('item');
+  await Hive.openBox('prescription');
+  await Hive.openBox('alarm');
   runApp(const MyApp());
 }
 
@@ -18,7 +20,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
       darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
-      home: Home(),
+      home: const Home(),
     );
   }
 }

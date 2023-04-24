@@ -1,39 +1,39 @@
-import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:medtrack/components/prescription.dart';
-
-import '../components/prescription_item.dart';
+import '../models/prescription.dart';
+import '../models/medication.dart';
+import '../widgets/medication_widget.dart';
 
 class Home extends StatefulWidget {
-  Home({Key? key}) : super(key: key);
+  const Home({Key? key}) : super(key: key);
 
   @override
-  _HomeState createState() => _HomeState();
+  State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  final _items = Hive.box('items');
+  final _items = Hive.box('item');
+  final _prescriptions = Hive.box('prescription');
 
   _addItem(String title) {
-    var prescriptionModel = PrescriptionModel(
+    var prescriptionModel = Prescription(
       key: UniqueKey().toString(),
       doctorName: "Médico do Taígo",
-      doctorRegistration: "0000 CRM-AL"
+      doctorRegistration: "0000 CRM-AL",
+      patientName: "Taígo"
     );
-    //prescriptionModel.persist();
+    prescriptionModel.persist();
 
-    var itemModel = PrescriptionItemModel.fromJson({
+    var itemModel = Medication.fromJson({
       "key": UniqueKey().toString(),
-      "patientName": "Taígo Pedrosa",
+      "prescriptionKey": prescriptionModel.key,
       "medicationName": "Paracetamol",
-      "doseAmount": 250,
-      "doseUnit": "MG/ML",
-      "dosageAmount": 5,
-      "dosageUnit": "ML",
+      "medicationDosageAmount": 250,
+      "medicationDosageUnit": "MG/ML",
+      "doseAmount": 5,
+      "doseUnit": "ml",
       "interval": 60,
       "occurrences": 10,
       "comments": "",
@@ -43,7 +43,8 @@ class _HomeState extends State<Home> {
   }
 
   _clearStorage() async {
-    _items.deleteFromDisk();
+    _items.clear();
+    _prescriptions.clear();
   }
 
   @override
@@ -79,7 +80,7 @@ class _HomeState extends State<Home> {
                   itemCount: box.length,
                   itemBuilder: (context, index) {
                     final item = jsonDecode(box.getAt(index));
-                    return PrescriptionItem.fromJson(item);
+                    return MedicationWidget.fromJson(item);
                   },
                 ),
               );
