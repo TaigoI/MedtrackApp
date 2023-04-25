@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:medtrack/models/alarm.dart';
 import 'package:medtrack/models/prescription.dart';
 
 import '../models/medication.dart';
@@ -13,14 +14,16 @@ class MedicationWidget extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _MedicationWidgetState();
 
-  factory MedicationWidget.fromJson(Map<String, dynamic> json){
-    if(!json.containsKey('key')) {
-      json['key'] = UniqueKey().toString();
-    }
+  factory MedicationWidget.fromMap(Map<String, dynamic> map){
+    bool hasKey = !map.containsKey('key');
+    if(hasKey) { map['key'] = UniqueKey().toString(); }
+
+    var model = Medication.fromMap(map);
+    if(hasKey) { model.save(); }
 
     return MedicationWidget(
-        key: ValueKey(json['key']),
-        model: Medication.fromJson(json),
+        key: ValueKey(map['key']),
+        model: model,
     );
   }
 
@@ -28,13 +31,11 @@ class MedicationWidget extends StatefulWidget {
 
 class _MedicationWidgetState extends State<MedicationWidget> {
   bool edit = false;
-  bool a1 = true;
-  bool a2 = true;
-  bool a3 = true;
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
+    List<Alarm> alarmList = widget.model.getAlarmList();
     var prescription = Prescription.fromStorage(widget.model.prescriptionKey);
 
     return Card(
@@ -68,48 +69,36 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                     style: Theme.of(context).textTheme.bodyMedium
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    FilterChip(
-                      avatar: Icon(a1 ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
-                      label: const Text('08:00'),
-                      selected: a1,
-                      onSelected: (selected) {
-                        setState(() {
-                          a1 = !a1;
-                        });
-                      },
-                      showCheckmark: false,
-                      elevation: 2,
-                    ),
-                    SizedBox(width: 4),
-                    FilterChip(
-                      avatar: Icon(a2 ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
-                      label: const Text('20:00'),
-                      selected: a2,
-                      onSelected: (selected) {
-                        setState(() {
-                          a2 = !a2;
-                        });
-                      },
-                      showCheckmark: false,
-                      elevation: 2,
-                    ),
-                    SizedBox(width: 4),
-                    FilterChip(
-                      avatar: Icon(a3 ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
-                      label: const Text('08:00+1'),
-                      selected: a3,
-                      onSelected: (selected) {
-                        setState(() {
-                          a3 = !a3;
-                        });
-                      },
-                      showCheckmark: false,
-                      elevation: 2,
-                    ),
-                  ],
+                SizedBox(
+                  height: 48,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    primary: true,
+                    itemCount: alarmList.length,
+                    itemBuilder: (context, i) {
+                      String chipText = DateFormat('HH:mm').format(alarmList[i].timestamp);
+                      int dayDiff = alarmList[i].timestamp.difference(DateTime.now()).inDays;
+                      if(dayDiff > 0){chipText+="+$dayDiff";}
+
+                      return FilterChip(
+                        avatar: Icon(alarmList[i].active ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
+                        label: Text(chipText),
+                        selected: alarmList[i].active,
+                        onSelected: (selected) {
+                          setState(() {
+                            alarmList[i].active = selected;
+                            alarmList[i].save();
+                          });
+                        },
+                        showCheckmark: false,
+                        elevation: 2,
+                      );
+                    },
+                    separatorBuilder: (context, i) {
+                      return const SizedBox(width: 4);
+                    },
+                  ),
                 )
               ],
             )
@@ -117,3 +106,10 @@ class _MedicationWidgetState extends State<MedicationWidget> {
     );
   }
 }
+
+
+/*
+
+
+
+*/

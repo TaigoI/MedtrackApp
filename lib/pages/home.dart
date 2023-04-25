@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/prescription.dart';
@@ -14,8 +12,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final _items = Hive.box('item');
-  final _prescriptions = Hive.box('prescription');
+  final _medicationBox = Hive.box('medication');
 
   _addItem(String title) {
     var prescriptionModel = Prescription(
@@ -26,25 +23,26 @@ class _HomeState extends State<Home> {
     );
     prescriptionModel.persist();
 
-    var itemModel = Medication.fromJson({
-      "key": UniqueKey().toString(),
-      "prescriptionKey": prescriptionModel.key,
-      "medicationName": "Paracetamol",
-      "medicationDosageAmount": 250,
-      "medicationDosageUnit": "MG/ML",
-      "doseAmount": 5,
-      "doseUnit": "ml",
-      "interval": 60,
-      "occurrences": 10,
-      "comments": "",
-      "initialDosage": "2023-12-12 00:00:00"
-    });
-    itemModel.persist();
+    var medication = Medication(
+      key: UniqueKey().toString(),
+      prescriptionKey: prescriptionModel.key,
+      medicationName: "Paracetamol",
+      medicationDosageAmount: 250,
+      medicationDosageUnit: "MG/ML",
+      doseAmount: 5,
+      doseUnit: "ml",
+      interval: 330,
+      occurrences: 10,
+      comments: "",
+      initialDosage: DateTime.now()
+    );
+    medication.save();
+    medication.updateAlarms();
   }
 
   _clearStorage() async {
-    _items.clear();
-    _prescriptions.clear();
+    Hive.box('medication').clear();
+    Hive.box('prescription').clear();
   }
 
   @override
@@ -66,7 +64,7 @@ class _HomeState extends State<Home> {
           elevation: 4,
         ),
         body: ValueListenableBuilder(
-          valueListenable: _items.listenable(),
+          valueListenable: _medicationBox.listenable(),
           builder: (context, Box box, widget) {
             if(box.isEmpty){
               return const Center(
@@ -79,8 +77,7 @@ class _HomeState extends State<Home> {
                 child: ListView.builder(
                   itemCount: box.length,
                   itemBuilder: (context, index) {
-                    final item = jsonDecode(box.getAt(index));
-                    return MedicationWidget.fromJson(item);
+                    return MedicationWidget.fromMap(box.getAt(index).cast<String, dynamic>());
                   },
                 ),
               );

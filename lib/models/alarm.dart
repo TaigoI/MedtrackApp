@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -20,36 +18,27 @@ class Alarm {
     required this.active,
   });
 
-  persist(){
-    _alarmBox.put(key, toJSON());
-  }
+  get(String key) { return Alarm.fromMap(_alarmBox.get(key)!); }
+  save(){ _alarmBox.put(key, toMap()); }
+  delete(){ _alarmBox.delete(key); }
 
-  delete(){
-    _alarmBox.delete(key);
-  }
-
-  factory Alarm.fromStorage(String key) {
-    var item = _alarmBox.get(key);
-    return Alarm.fromJson(item!);
-  }
-
-  factory Alarm.fromJson(Map<String, dynamic> json) {
+  factory Alarm.fromMap(Map<String, dynamic> map) {
     return Alarm(
-        key: json.containsKey('key') ? json['key'] : UniqueKey().toString(),
-        medicationKey: json['medicationKey'].toString(),
-        timestamp: DateTime.parse(json['timestamp'].toString()),
-        active: bool.parse(json['active'].toString()),
+        key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
+        medicationKey: map['medicationKey'].toString(),
+        timestamp: DateTime.parse(map['timestamp'].toString()),
+        active: bool.parse(map['active'].toString()),
     );
   }
 
-  toJSON() {
-    Map<String, dynamic> json = {
+  toMap() {
+    Map<String, dynamic> map = {
       'key': key,
       'medicationKey': medicationKey,
       'timestamp': timestamp,
       'active': active,
     };
-    return jsonEncode(json);
+    return map;
   }
 
 }

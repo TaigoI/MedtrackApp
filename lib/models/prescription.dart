@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class Prescription {
-  static final _prescriptionBox = Hive.box('prescription');
-  static final _itemBox = Hive.box('item');
+  static final _box = Hive.box('prescription');
+  static final _medicationBox = Hive.box('medication');
 
   String key;
   String patientName;
@@ -20,16 +20,16 @@ class Prescription {
   });
 
   persist(){
-    _prescriptionBox.put(key, toJSON());
+    _box.put(key, toJSON());
   }
 
   delete(){
-    _prescriptionBox.delete(key);
-    _itemBox.values.where((item) => item.prescriptionKey == key).forEach((element) { element.delete(); });
+    _box.delete(key);
+    _medicationBox.values.where((item) => item.prescriptionKey == key).forEach((element) { element.delete(); });
   }
 
   factory Prescription.fromStorage(String key) {
-    var prescription = _prescriptionBox.get(key);
+    var prescription = _box.get(key);
     return prescription != null
         ? Prescription.fromJson(jsonDecode(prescription))
         : Prescription(key: UniqueKey().toString(), patientName: "Paciente não especificado", doctorName: "Médico não especificado", doctorRegistration: "");

@@ -5,8 +5,8 @@ import 'theme.dart';
 
 void main() async {
   await Hive.initFlutter();
-  await Hive.openBox('item');
   await Hive.openBox('prescription');
+  await Hive.openBox('medication');
   await Hive.openBox('alarm');
   runApp(const MyApp());
 }

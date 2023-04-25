@@ -1,12 +1,12 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:medtrack/models/alarm.dart';
 
 
 class Medication {
-  static final _itemBox = Hive.box('item');
+  static final _box = Hive.box('medication');
+  static final _alarmBox = Hive.box('alarm');
 
   String key;
   String medicationName; //nome do remédio. "Paracetamol"
@@ -34,37 +34,33 @@ class Medication {
     required this.initialDosage
   });
 
-  persist(){
-    _itemBox.put(key, toJSON());
-  }
-
+  get(String key) { return Medication.fromMap(_box.get(key)!); }
+  save(){ _box.put(key, toMap()); }
   delete(){
-    _itemBox.delete(key);
+    _box.delete(key);
+    for (var alarm in getAlarmList()) {
+      alarm.delete();
+    }
   }
 
-  factory Medication.fromStorage(String key) {
-    var item = _itemBox.get(key);
-    return Medication.fromJson(item!);
-  }
-
-  factory Medication.fromJson(Map<String, dynamic> json) {
+  factory Medication.fromMap(Map<String, dynamic> map) {
     return Medication(
-        key: json.containsKey('key') ? json['key'] : UniqueKey().toString(),
-        prescriptionKey: json['prescriptionKey'].toString(),
-        medicationName: json['medicationName'].toString(),
-        medicationDosageAmount: int.parse(json['medicationDosageAmount'].toString()),
-        medicationDosageUnit: json['medicationDosageUnit'].toString(),
-        doseAmount: int.parse(json['doseAmount'].toString()),
-        doseUnit: json['doseUnit'].toString(),
-        interval: int.parse(json['interval'].toString()),
-        occurrences: int.parse(json['occurrences'].toString()),
-        comments: json['comments'].toString(),
-        initialDosage: DateTime.parse(json['initialDosage'].toString())
+        key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
+        prescriptionKey: map['prescriptionKey'].toString(),
+        medicationName: map['medicationName'].toString(),
+        medicationDosageAmount: int.parse(map['medicationDosageAmount'].toString()),
+        medicationDosageUnit: map['medicationDosageUnit'].toString(),
+        doseAmount: int.parse(map['doseAmount'].toString()),
+        doseUnit: map['doseUnit'].toString(),
+        interval: int.parse(map['interval'].toString()),
+        occurrences: int.parse(map['occurrences'].toString()),
+        comments: map['comments'].toString(),
+        initialDosage: map.containsKey('initialDosage') ? DateTime.parse(map['initialDosage'].toString()) : DateTime.now()
     );
   }
 
-  toJSON() {
-    Map<String, dynamic> json = {
+  Map<String, dynamic> toMap() {
+    return {
       'key': key,
       'prescriptionKey' : prescriptionKey,
       'medicationName': medicationName,
@@ -77,7 +73,38 @@ class Medication {
       'comments': comments,
       'initialDosage': initialDosage.toString(),
     };
-    return jsonEncode(json);
+  }
+
+  //can be optimized with a 'medicationToAlarms' box like Box<MedicationKey, List<AlarmKey>>
+  List<Alarm> getAlarmList() {
+    List<Alarm> alarmList = [];
+    _alarmBox.values.where((map) => map['medicationKey'] == key).forEach((map) { alarmList.add(Alarm.fromMap(map.cast<String, dynamic>())); });
+    alarmList.sort(compareAlarms);
+    return alarmList;
+  }
+
+  updateAlarms(){
+    for(int i = 0; i < occurrences; i++){
+      var alarm = Alarm(
+        key: UniqueKey().toString(),
+        medicationKey: key,
+        active: true,
+        timestamp: initialDosage.add(Duration(minutes: i*interval)),
+      );
+      alarm.save();
+    }
+  }
+
+  int compareAlarms(Alarm a, Alarm b){
+    if((!a.active && !b.active) || (a.active && b.active)){
+      return a.timestamp.compareTo(b.timestamp);
+    } else {
+      if(a.active){
+        return -1;
+      } else {
+        return 1;
+      }
+    }
   }
 
 }
