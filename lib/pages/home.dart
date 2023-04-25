@@ -1,151 +1,18 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:medtrack/components/prescription.dart';
+import '../models/prescription.dart';
+import '../models/medication.dart';
+import '../widgets/medication_widget.dart';
 
+import 'dart:async';
 import 'package:alarm/alarm.dart';
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/pages/ring.dart';
 
-import '../components/prescription_item.dart';
-
 DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
 
-List<PrescriptionItemModel> testItems = [
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Hélder Lima",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Hélder Lima",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Manuel Bandeira",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Manuel Bandeira",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Manuel Bandeira",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Gabriel Faure",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Gabriel Faure",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Gabriel Faure",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Joseph Ratzinger",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Joseph Ratzinger",
-      comments: ""),
-  PrescriptionItemModel(
-      key: UniqueKey().toString(),
-      medicationName: "Trembolona",
-      doseAmount: "500",
-      doseUnit: "MG",
-      dosageAmount: 100,
-      dosageUnit: "ML",
-      interval: 15,
-      occurrences: 5,
-      initialDosage: DateTime.now().add(const Duration(seconds: 15)),
-      patientName: "Joseph Ratzinger",
-      comments: ""),
+List<Medication> testItems = [
+  
 ];
 
 List<SingleAlarm> alarmsList = List.empty(growable: true);
@@ -164,36 +31,40 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final _items = Hive.box('items');
+  final _medicationBox = Hive.box('medication');
 
   late List<AlarmSettings> alarms;
   static StreamSubscription? subscription;
 
   _addItem(String title) {
-    var prescriptionModel = PrescriptionModel(
-        key: UniqueKey().toString(),
-        doctorName: "Médico do Taígo",
-        doctorRegistration: "0000 CRM-AL");
-    //prescriptionModel.persist();
+    var prescriptionModel = Prescription(
+      key: UniqueKey().toString(),
+      doctorName: "Médico do Taígo",
+      doctorRegistration: "0000 CRM-AL",
+      patientName: "Taígo"
+    );
+    prescriptionModel.persist();
 
-    var itemModel = PrescriptionItemModel.fromJson({
-      "key": UniqueKey().toString(),
-      "patientName": "Taígo Pedrosa",
-      "medicationName": "Paracetamol",
-      "doseAmount": 250,
-      "doseUnit": "MG/ML",
-      "dosageAmount": 5,
-      "dosageUnit": "ML",
-      "interval": 60,
-      "occurrences": 10,
-      "comments": "",
-      "initialDosage": "2023-12-12 00:00:00"
-    });
-    itemModel.persist();
+    var medication = Medication(
+      key: UniqueKey().toString(),
+      prescriptionKey: prescriptionModel.key,
+      medicationName: "Paracetamol",
+      medicationDosageAmount: 250,
+      medicationDosageUnit: "MG/ML",
+      doseAmount: 5,
+      doseUnit: "ml",
+      interval: 330,
+      occurrences: 10,
+      comments: "",
+      initialDosage: DateTime.now()
+    );
+    medication.save();
+    medication.updateAlarms();
   }
 
   _clearStorage() async {
-    _items.deleteFromDisk();
+    Hive.box('medication').clear();
+    Hive.box('prescription').clear();
   }
 
   @override
@@ -232,28 +103,22 @@ class _HomeState extends State<Home> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.menu_rounded),
-            onPressed: () {
-              for (PrescriptionItemModel item in testItems) {
-                alarmFromPrescriptionItem(alarmsList, item, goalTime);
-              }
-              printAlarms();},
+            onPressed: () {},
           ),
           title: Image.asset('assets/images/logo.png', height: 48),
           actions: <Widget>[
             IconButton(
               icon: const Icon(Icons.account_circle_rounded),
-              onPressed: () {
-                stopAllAlarms();    
-              },
+              onPressed: () {},
             )
           ],
           centerTitle: true,
           elevation: 4,
         ),
         body: ValueListenableBuilder(
-          valueListenable: _items.listenable(),
+          valueListenable: _medicationBox.listenable(),
           builder: (context, Box box, widget) {
-            if (box.isEmpty) {
+            if(box.isEmpty){
               return const Center(
                 child: Text('Empty'),
               );
@@ -264,8 +129,7 @@ class _HomeState extends State<Home> {
                 child: ListView.builder(
                   itemCount: box.length,
                   itemBuilder: (context, index) {
-                    final item = jsonDecode(box.getAt(index));
-                    return PrescriptionItem.fromJson(item);
+                    return MedicationWidget.fromMap(box.getAt(index).cast<String, dynamic>());
                   },
                 ),
               );
@@ -273,22 +137,25 @@ class _HomeState extends State<Home> {
           },
         ),
         floatingActionButton: Container(
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-              FloatingActionButton(
-                onPressed: () {
-                  _addItem('Sample Prescription');
-                },
-                child: const Icon(Icons.add),
-              ),
-              const SizedBox(height: 10),
-              FloatingActionButton(
-                onPressed: () {
-                  _clearStorage();
-                },
-                child: const Icon(Icons.delete),
-              ),
-            ])));
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                  FloatingActionButton(
+                    onPressed: () {
+                      _addItem('Sample Prescription');
+                    },
+                    child: const Icon(Icons.add),
+                  ),
+                  const SizedBox(height: 10),
+                  FloatingActionButton(
+                    onPressed: () {
+                      _clearStorage();
+                    },
+                    child: const Icon(Icons.delete),
+                  ),
+              ]
+          )
+        )
+    );
   }
 }

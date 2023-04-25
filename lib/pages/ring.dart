@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-
 import 'package:alarm/alarm.dart';
-
 import 'package:medtrack/pages/home.dart';
 import 'package:medtrack/services/alarms_service.dart';
-import 'package:medtrack/components/prescription_item.dart';
+import 'package:medtrack/models/medication.dart';
+import 'package:medtrack/models/prescription.dart';
 
 class RingScreen extends StatefulWidget {
   final AlarmSettings alarmSettings;
@@ -31,7 +30,7 @@ class _RingScreenState extends State<RingScreen> {
   }
 
   Widget medicationCheckBox(
-      BuildContext context, PrescriptionItemModel item, int idx, String patientName) {
+      BuildContext context, Medication item, int idx, String patientName) {
     return CheckboxListTile(
       value: _checklist[patientName]![idx],
       onChanged: (bool? value) {
@@ -44,7 +43,7 @@ class _RingScreenState extends State<RingScreen> {
     );
   }
 
-  Widget patientCard(BuildContext context, String patientName, List<PrescriptionItemModel> items) {
+  Widget patientCard(BuildContext context, String patientName, List<Medication> items) {
     return Card(
         color: Theme.of(context).colorScheme.background,
         shape: RoundedRectangleBorder(
@@ -74,7 +73,7 @@ class _RingScreenState extends State<RingScreen> {
   }
 
   List<Widget> getPatientsCards(
-      BuildContext context, Map<String, List<PrescriptionItemModel>> items) {
+      BuildContext context, Map<String, List<Medication>> items) {
     List<Widget> cards = [];
     for (String name in items.keys) {
       cards.add(patientCard(context, name, items[name]!));

@@ -1,8 +1,8 @@
 import 'package:alarm/alarm.dart';
 
-import '../components/prescription_item.dart';
-
-  /**
+import 'package:medtrack/models/medication.dart';
+import 'package:medtrack/models/prescription.dart';
+/**
    * A ideia pra isso aqui é o seguinte:
    * Há o problema de que o plugin enlouquece se tiver mais de uma alarme ao mesmo tempo
    * e esse certamente será o caso; é muito normal que uma pessoa tome dois, três remédios ao mesmo tempo
@@ -17,24 +17,44 @@ import '../components/prescription_item.dart';
    * A ideia, então, é deixar esse alarme dentro de um classes cujos campos são expandíveis (leia-se, os pacientes
    * e os remédios podem entrar e sair a qualquer momento).
    * Então, não é mais um remédio que tem um alarme numa hora, mas um alarme numa hora que tem os remédios 
-   *////
+   */ ///
+
+class AlarmItem {
+  bool active = true;
+  var identificador;
+
+  AlarmItem({required this.identificador});
+
+  void setToActive() {
+    active = true;
+  }
+
+  void setToInactive() {
+    active = false;
+  }
+}
+
 class SingleAlarm {
   DateTime timeStamp; // horário em que o alarme soará
-  late Map<String, List<PrescriptionItemModel>> items = {}; // itens a serem tomados neste horário
+  late Map<String, List<Medication>> items =
+      {}; // itens a serem tomados neste horário
   String audioPath; // vem das configurações
   List<int> alarmsIds = List.empty(growable: true);
 
-  SingleAlarm ({required this.timeStamp, required this.audioPath, required PrescriptionItemModel item}) {
-    items[item.patientName] = [item];
+  SingleAlarm(
+      {required this.timeStamp,
+      required this.audioPath,
+      required Medication item,
+      required String patientName}) {
+    items[patientName] = [item];
     setAlarm();
   }
 
-  void addItem(PrescriptionItemModel item) {
-    if (items.containsKey(item.patientName)) {
-      items[item.patientName]!.add(item);
-    }
-    else {
-      items[item.patientName] = [item];
+  void addItem(Medication item, String patientName) {
+    if (items.containsKey(patientName)) {
+      items[patientName]!.add(item);
+    } else {
+      items[patientName] = [item];
     }
   }
 
@@ -42,50 +62,54 @@ class SingleAlarm {
     int id = DateTime.now().millisecondsSinceEpoch % 1000;
     alarmsIds.add(id);
 
-    final alarmSettings =  AlarmSettings(
-      id: id, 
-      dateTime: timeStamp, 
-      assetAudioPath: audioPath,
-      vibrate: true,
-      loopAudio: false,
-      notificationTitle: "Hora dos Remédios",
-      notificationBody: "Abra o app para confirmar que tomou"
-    );
+    final alarmSettings = AlarmSettings(
+        id: id,
+        dateTime: timeStamp,
+        assetAudioPath: audioPath,
+        vibrate: true,
+        loopAudio: false,
+        notificationTitle: "Hora dos Remédios",
+        notificationBody: "Abra o app para confirmar que tomou");
 
     await Alarm.set(alarmSettings: alarmSettings);
   }
 }
 
-void alarmFromPrescriptionItem(List<SingleAlarm> alarms, PrescriptionItemModel prescriptionItem, DateTime goalTime) async {
-  DateTime endDate = prescriptionItem.initialDosage.add(
-    Duration(minutes: (prescriptionItem.occurrences * prescriptionItem.interval))
-  );
+void alarmFromMedication(
+    List<SingleAlarm> alarms, Medication medication, DateTime goalTime) async {
+  String patientName =
+      Prescription.fromStorage(medication.prescriptionKey).patientName;
+
+  DateTime endDate = medication.initialDosage
+      .add(Duration(minutes: (medication.occurrences * medication.interval)));
 
   print("endDate: [$endDate]");
 
-  DateTime currentStamp = prescriptionItem.initialDosage;
+  DateTime currentStamp = medication.initialDosage;
   bool timeStampTaken;
   // DateTime goal = DateTime.now().add(const Duration(seconds: 30));
-  
+
   // while (currentStamp.isBefore(endDate)) {
   for (int i = 0; i < 1; i++) {
     timeStampTaken = false;
 
     for (SingleAlarm alarm in alarms) {
       if (alarm.timeStamp.compareTo(goalTime) == 0) {
-        alarm.addItem(prescriptionItem);
+        alarm.addItem(medication, patientName);
         timeStampTaken = true;
         break;
       }
     }
 
     if (!timeStampTaken) {
-      alarms.add(
-        SingleAlarm(audioPath: 'sounds/mozart.mp3', timeStamp: goalTime, item: prescriptionItem)
-      );
-    } 
-    
-    currentStamp = currentStamp.add(Duration(minutes: prescriptionItem.interval));
+      alarms.add(SingleAlarm(
+          audioPath: 'sounds/mozart.mp3',
+          timeStamp: goalTime,
+          item: medication,
+          patientName: patientName));
+    }
+
+    currentStamp = currentStamp.add(Duration(minutes: medication.interval));
   }
 }
 
