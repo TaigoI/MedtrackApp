@@ -1,1 +1,0 @@
-enum DosageUnit { DROPLET, PILL }
