@@ -1,33 +1,38 @@
+/**
+ * 
+ * 
+ */
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 
-class Alarm {
-  static final _alarmBox = Hive.box('alarm');
+class Alarme {
+  static final _alarmeBox = Hive.box('alarme');
 
   String key;
   String medicationKey;
   DateTime timestamp;
   bool active;
 
-  Alarm({
+  Alarme({
     required this.key,
     required this.medicationKey,
     required this.timestamp,
     required this.active,
   });
 
-  get(String key) { return Alarm.fromMap(_alarmBox.get(key)!); }
-  save(){ _alarmBox.put(key, toMap()); }
-  delete(){ _alarmBox.delete(key); }
+  get(String key) { return Alarme.fromMap(_alarmeBox.get(key)!); }
+  save(){ _alarmeBox.put(key, toMap()); }
+  delete(){ _alarmeBox.delete(key); }
 
-  factory Alarm.fromMap(Map<String, dynamic> map) {
-    return Alarm(
+  factory Alarme.fromMap(Map<String, dynamic> map) {
+    return Alarme(
         key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
         medicationKey: map['medicationKey'].toString(),
         timestamp: DateTime.parse(map['timestamp'].toString()),
-        active: bool.parse(map['active'].toString()),
+        active: true,
     );
   }
 

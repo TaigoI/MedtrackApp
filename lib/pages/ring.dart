@@ -4,14 +4,18 @@ import 'package:medtrack/pages/home.dart';
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/models/medication.dart';
 import 'package:medtrack/models/prescription.dart';
+import 'package:hive/hive.dart';
 
 class RingScreen extends StatefulWidget {
   final AlarmSettings alarmSettings;
-  late SingleAlarm singleAlarm;
+  final Box<dynamic> medicationBox;
+  
+  late AppAlarm appAlarm;
+  
 
-  RingScreen({super.key, required this.alarmSettings}) {
-    singleAlarm = alarmsList
-        .firstWhere((element) => element.alarmsIds.contains(alarmSettings.id));
+  RingScreen({super.key, required this.alarmSettings, required this.medicationBox}) {
+    appAlarm = alarmsList
+        .firstWhere((element) => element.alarmId == alarmSettings.id);
   }
 
   @override
@@ -21,29 +25,53 @@ class RingScreen extends StatefulWidget {
 class _RingScreenState extends State<RingScreen> {
   Map<String, List<bool>> _checklist = {};
 
+  
   @override
   void initState() {
     super.initState();
-    widget.singleAlarm.items.forEach((patientName, itemsList) {
-      _checklist[patientName] = List.filled(itemsList.length, false);
+    
+    bool active = true;
+    for (MapEntry e in widget.appAlarm.items.entries) {
+      if (e.value.every((v) => v == false)) {
+        active = false;
+      } else {
+        active = true;
+      }
+    }
+
+    if (!active) {
+      Alarm.stop(widget.appAlarm.alarmId).then((_) => Navigator.pushNamed(context, '/'));
+    }
+
+    widget.appAlarm.items.forEach((patientName, itemsList) {
+      _checklist[patientName] = List.filled(
+        itemsList.where((element) => element.isActive() == true).toList().length,
+        false
+      );
+      print(_checklist);
     });
   }
 
   Widget medicationCheckBox(
-      BuildContext context, Medication item, int idx, String patientName) {
+      BuildContext context, AlarmItem item, int idx, String patientName) {
+    Medication med = Medication.fromMap(
+        widget.medicationBox
+        .get(item.medicationKey)
+        .cast<String, dynamic>());
+    
     return CheckboxListTile(
       value: _checklist[patientName]![idx],
       onChanged: (bool? value) {
         setState(() => _checklist[patientName]![idx] = value!);
       },
       title: Text(
-        "${item.medicationName} * ${item.doseAmount}${item.doseUnit}",
+        "${med.medicationName} * ${med.doseAmount}${med.doseUnit}",
       ),
       secondary: const Icon(Icons.medication_outlined),
     );
   }
 
-  Widget patientCard(BuildContext context, String patientName, List<Medication> items) {
+  Widget patientCard(BuildContext context, String patientName, List<AlarmItem> items) {
     return Card(
         color: Theme.of(context).colorScheme.background,
         shape: RoundedRectangleBorder(
@@ -63,7 +91,10 @@ class _RingScreenState extends State<RingScreen> {
             ),
           ),
           Column(
-            children: items
+            children: 
+                items
+                .where((element) => element.isActive() == true)
+                .toList()
                 .asMap()
                 .entries
                 .map((item) => medicationCheckBox(context, item.value, item.key, patientName))
@@ -73,7 +104,7 @@ class _RingScreenState extends State<RingScreen> {
   }
 
   List<Widget> getPatientsCards(
-      BuildContext context, Map<String, List<Medication>> items) {
+      BuildContext context, Map<String, dynamic> items) {
     List<Widget> cards = [];
     for (String name in items.keys) {
       cards.add(patientCard(context, name, items[name]!));
@@ -117,7 +148,7 @@ class _RingScreenState extends State<RingScreen> {
                   padding: const EdgeInsets.all(0),
                   child: ListView(
                       children:
-                          getPatientsCards(context, widget.singleAlarm.items))),
+                          getPatientsCards(context, widget.appAlarm.items))),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [

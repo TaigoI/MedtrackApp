@@ -6,16 +6,19 @@ import '../widgets/medication_widget.dart';
 
 import 'dart:async';
 import 'package:alarm/alarm.dart';
+
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/pages/ring.dart';
 
 DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
 
+DateTime today = DateTime.now();
+
 List<Medication> testItems = [
-  
+
 ];
 
-List<SingleAlarm> alarmsList = List.empty(growable: true);
+List<AppAlarm> alarmsList = List.empty(growable: true);
 
 // PrescriptionItem testItem =
 //   PrescriptionItem(medicine: "Amoxilina", dose: "1", dosage: "3", dosageUnit: "MG", time: '1', date: '1');
@@ -56,10 +59,19 @@ class _HomeState extends State<Home> {
       interval: 330,
       occurrences: 10,
       comments: "",
-      initialDosage: DateTime.now()
+      initialDosage: DateTime(
+        today.year,
+        today.month,
+        today.day,
+        21,
+        0,
+        0,
+        0,
+        )
     );
     medication.save();
-    medication.updateAlarms();
+    medication.updateAlarmes();
+
   }
 
   _clearStorage() async {
@@ -87,7 +99,7 @@ class _HomeState extends State<Home> {
     await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => RingScreen(alarmSettings: alarmSettings)));
+            builder: (context) => RingScreen(alarmSettings: alarmSettings, medicationBox: _medicationBox,)));
     loadAlarms();
   }
 
@@ -103,13 +115,18 @@ class _HomeState extends State<Home> {
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.menu_rounded),
-            onPressed: () {},
+            onPressed: () {
+              for (Medication item in testItems) {
+                alarmFromMedication(alarmsList, item);
+              }
+              printAlarms();
+            },
           ),
           title: Image.asset('assets/images/logo.png', height: 48),
           actions: <Widget>[
             IconButton(
               icon: const Icon(Icons.account_circle_rounded),
-              onPressed: () {},
+              onPressed: () {printAlarms();},
             )
           ],
           centerTitle: true,

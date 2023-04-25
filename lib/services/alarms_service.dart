@@ -1,66 +1,127 @@
-import 'package:alarm/alarm.dart';
-
+import 'package:flutter/foundation.dart';
 import 'package:medtrack/models/medication.dart';
 import 'package:medtrack/models/prescription.dart';
-/**
-   * A ideia pra isso aqui é o seguinte:
-   * Há o problema de que o plugin enlouquece se tiver mais de uma alarme ao mesmo tempo
-   * e esse certamente será o caso; é muito normal que uma pessoa tome dois, três remédios ao mesmo tempo
-   * Além disso, surgiu a possibilidade de atribuir pessoas às receitas.
-   * Dessa forma, não só é possível tocar mais de um alarme ao mesmo tempo, mas vários alarmes 
-   * para várias receitas.
-   * Na prática, para mim, cada ponto no tempo só pode ter um alarme, ainda que haja 500 remédios
-   * para tomar ao mesmo tempo.
-   * Então, eu preciso conhecer esses pontos no tempo de antemão antes de setar o alarme.
-   * Preciso dar um jeito de, lendo os horários que o cara vai tomar o remédio, ver se já tem remédios setados 
-   * para aquele alarme. 
-   * A ideia, então, é deixar esse alarme dentro de um classes cujos campos são expandíveis (leia-se, os pacientes
-   * e os remédios podem entrar e sair a qualquer momento).
-   * Então, não é mais um remédio que tem um alarme numa hora, mas um alarme numa hora que tem os remédios 
-   */ ///
+import 'package:alarm/alarm.dart';
+import 'package:hive/hive.dart';
 
 class AlarmItem {
+  final String medicationKey;
   bool active = true;
-  var identificador;
 
-  AlarmItem({required this.identificador});
+  AlarmItem({required this.medicationKey});
+  AlarmItem.withActive({required this.medicationKey, required this.active});
 
-  void setToActive() {
-    active = true;
+  void setActive(bool active) {
+    active = active;
   }
 
-  void setToInactive() {
-    active = false;
+  bool isActive() {
+    return active;
+  }
+
+  factory AlarmItem.fromMap(Map<String, dynamic> map) {
+    return AlarmItem.withActive(
+        medicationKey: map['medicationKey'],
+        active: map['active'] == 'true' ? true : false  
+      );
+
+  }
+
+  Map<String, dynamic> toMap(){
+    return {
+      'medicationKey': medicationKey,
+      'active': active
+    };
+  }
+
+  @override
+  String toString() {
+    return "key: $medicationKey, active: $active";
   }
 }
 
-class SingleAlarm {
-  DateTime timeStamp; // horário em que o alarme soará
-  late Map<String, List<Medication>> items =
-      {}; // itens a serem tomados neste horário
-  String audioPath; // vem das configurações
-  List<int> alarmsIds = List.empty(growable: true);
+Map<String, dynamic> itemsFromMap(Map<String, dynamic> map) {
+    Map<String, dynamic> itemsMap = map.map(
+      (k, v) => MapEntry(k, v.map((e) => AlarmItem.fromMap(e)))
+    );
 
-  SingleAlarm(
-      {required this.timeStamp,
+    return itemsMap;
+  }
+
+class AppAlarm {
+  static final _alarmBox = Hive.box('alarms');
+
+  String key;
+  DateTime timeStamp; // horário em que o alarme soará
+  late Map<String, dynamic> items; // itens a serem tomados neste horário
+  String audioPath; // vem das configurações
+
+  late int alarmId; //id para pegar do plugin
+
+  AppAlarm(
+      {required this.key,
+      required this.timeStamp,
       required this.audioPath,
-      required Medication item,
+      required String medicationKey,
       required String patientName}) {
-    items[patientName] = [item];
+    items = {};
+    items[patientName] = [AlarmItem(medicationKey: medicationKey)];
+    print(items[patientName]);
     setAlarm();
   }
 
-  void addItem(Medication item, String patientName) {
+  get(String key) {
+    return AppAlarm.fromMap(_alarmBox.get(key)!);
+  }
+
+  save() async {
+    await _alarmBox.put(key, toMap());
+  }
+
+  AppAlarm.withItems(
+      {required this.key,
+      required this.timeStamp,
+      required this.items,
+      required this.audioPath,
+      required this.alarmId}) {
+    setAlarmIfAlreadyNot(alarmId);
+  }
+
+  factory AppAlarm.fromMap(Map<String, dynamic> map) {
+    return AppAlarm.withItems(
+        key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
+        timeStamp: DateTime.parse(map['timeStamp'].toString()),
+        items: itemsFromMap(map['items']),
+        audioPath: map['audioPath'],
+        alarmId: map['alarmId']);
+  }  
+
+  toMap() {
+    Map<String, dynamic> map = {
+      'key': key,
+      'timeStamp': timeStamp,
+      'items':
+          items.map((patientName, itemsList) => 
+            MapEntry(patientName, itemsList.map((item) => item.toMap()))),
+      'audioPath': audioPath,
+      'alarmId': alarmId
+    };
+    return map;
+  }
+
+  void addItem(String medicationKey, String patientName) {
     if (items.containsKey(patientName)) {
-      items[patientName]!.add(item);
+      items[patientName]!.add(AlarmItem(medicationKey: medicationKey));
     } else {
-      items[patientName] = [item];
+      items[patientName] = [AlarmItem(medicationKey: medicationKey)
+      ];
     }
+    save();
   }
 
   Future<void> setAlarm() async {
     int id = DateTime.now().millisecondsSinceEpoch % 1000;
-    alarmsIds.add(id);
+    alarmId = id;
 
     final alarmSettings = AlarmSettings(
         id: id,
@@ -73,10 +134,35 @@ class SingleAlarm {
 
     await Alarm.set(alarmSettings: alarmSettings);
   }
+
+  Future<void> setAlarmIfAlreadyNot(int id) async {
+    if (!Alarm.getAlarms().any((alarm) => alarm.id == id)) {
+      await Alarm.set(
+          alarmSettings: AlarmSettings(
+              id: id,
+              dateTime: timeStamp,
+              assetAudioPath: audioPath,
+              vibrate: true,
+              loopAudio: false,
+              notificationTitle: "Hora dos Remédios",
+              notificationBody: "Abra o app para confirmar que tomou"));
+    }
+  }
+
+  bool shouldRing() {
+    bool flag = true;
+    items.forEach((key, value) {
+      flag = true;
+      if (value.every((val) => val.isActive() == false)) {
+        flag = false;
+      }
+    });
+    return flag;
+  }
+
 }
 
-void alarmFromMedication(
-    List<SingleAlarm> alarms, Medication medication, DateTime goalTime) async {
+void alarmFromMedication(List<AppAlarm> alarms, Medication medication) async {
   String patientName =
       Prescription.fromStorage(medication.prescriptionKey).patientName;
 
@@ -87,30 +173,33 @@ void alarmFromMedication(
 
   DateTime currentStamp = medication.initialDosage;
   bool timeStampTaken;
-  // DateTime goal = DateTime.now().add(const Duration(seconds: 30));
 
   // while (currentStamp.isBefore(endDate)) {
   for (int i = 0; i < 1; i++) {
     timeStampTaken = false;
 
-    for (SingleAlarm alarm in alarms) {
-      if (alarm.timeStamp.compareTo(goalTime) == 0) {
-        alarm.addItem(medication, patientName);
+    for (AppAlarm alarm in alarms) {
+      if (alarm.timeStamp.compareTo(currentStamp) == 0) {
+        alarm.addItem(medication.key, patientName);
         timeStampTaken = true;
         break;
       }
     }
 
     if (!timeStampTaken) {
-      alarms.add(SingleAlarm(
+      alarms.add(AppAlarm(
+          key: UniqueKey().toString(),
           audioPath: 'sounds/mozart.mp3',
-          timeStamp: goalTime,
-          item: medication,
+          timeStamp: currentStamp,
+          medicationKey: medication.key,
           patientName: patientName));
     }
 
     currentStamp = currentStamp.add(Duration(minutes: medication.interval));
   }
+
+  print('\n\n');
+  printAlarms();
 }
 
 void stopAllAlarms() async {

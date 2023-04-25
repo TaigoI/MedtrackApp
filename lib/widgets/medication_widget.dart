@@ -35,7 +35,7 @@ class _MedicationWidgetState extends State<MedicationWidget> {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
-    List<Alarm> alarmList = widget.model.getAlarmList();
+    List<Alarme> AlarmeList = widget.model.getAlarmeList();
     var prescription = Prescription.fromStorage(widget.model.prescriptionKey);
 
     return Card(
@@ -75,20 +75,20 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                     scrollDirection: Axis.horizontal,
                     shrinkWrap: true,
                     primary: true,
-                    itemCount: alarmList.length,
+                    itemCount: AlarmeList.length,
                     itemBuilder: (context, i) {
-                      String chipText = DateFormat('HH:mm').format(alarmList[i].timestamp);
-                      int dayDiff = alarmList[i].timestamp.difference(DateTime.now()).inDays;
+                      String chipText = DateFormat('HH:mm').format(AlarmeList[i].timestamp);
+                      int dayDiff = AlarmeList[i].timestamp.difference(DateTime.now()).inDays;
                       if(dayDiff > 0){chipText+="+$dayDiff";}
 
                       return FilterChip(
-                        avatar: Icon(alarmList[i].active ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
+                        avatar: Icon(AlarmeList[i].active ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
                         label: Text(chipText),
-                        selected: alarmList[i].active,
+                        selected: AlarmeList[i].active,
                         onSelected: (selected) {
                           setState(() {
-                            alarmList[i].active = selected;
-                            alarmList[i].save();
+                            AlarmeList[i].active = selected;
+                            AlarmeList[i].save();
                           });
                         },
                         showCheckmark: false,
@@ -106,3 +106,7 @@ class _MedicationWidgetState extends State<MedicationWidget> {
     );
   }
 }
+
+
+
+

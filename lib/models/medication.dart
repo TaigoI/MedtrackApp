@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/models/alarm.dart';
+import 'package:medtrack/pages/home.dart';
+import 'package:medtrack/services/alarms_service.dart';
 
 
 class Medication {
@@ -38,7 +40,7 @@ class Medication {
   save(){ _box.put(key, toMap()); }
   delete(){
     _box.delete(key);
-    for (var alarm in getAlarmList()) {
+    for (var alarm in getAlarmeList()) {
       alarm.delete();
     }
   }
@@ -75,27 +77,19 @@ class Medication {
     };
   }
 
-  //can be optimized with a 'medicationToAlarms' box like Box<MedicationKey, List<AlarmKey>>
-  List<Alarm> getAlarmList() {
-    List<Alarm> alarmList = [];
-    _alarmBox.values.where((map) => map['medicationKey'] == key).forEach((map) { alarmList.add(Alarm.fromMap(map.cast<String, dynamic>())); });
-    alarmList.sort(compareAlarms);
+  //can be optimized with a 'medicationToAlarmes' box like Box<MedicationKey, List<AlarmeKey>>
+  List<Alarme> getAlarmeList() {
+    List<Alarme> alarmList = [];
+    _alarmBox.values.where((map) => map['medicationKey'] == key).forEach((map) { alarmList.add(Alarme.fromMap(map.cast<String, dynamic>())); });
+    alarmList.sort(compareAlarmes);
     return alarmList;
   }
 
-  updateAlarms(){
-    for(int i = 0; i < occurrences; i++){
-      var alarm = Alarm(
-        key: UniqueKey().toString(),
-        medicationKey: key,
-        active: true,
-        timestamp: initialDosage.add(Duration(minutes: i*interval)),
-      );
-      alarm.save();
-    }
+  updateAlarmes(){
+    alarmFromMedication(alarmsList, this);
   }
 
-  int compareAlarms(Alarm a, Alarm b){
+  int compareAlarmes(Alarme a, Alarme b){
     if((!a.active && !b.active) || (a.active && b.active)){
       return a.timestamp.compareTo(b.timestamp);
     } else {
