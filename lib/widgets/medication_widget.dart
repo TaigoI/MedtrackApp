@@ -35,7 +35,7 @@ class _MedicationWidgetState extends State<MedicationWidget> {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
-    List<Alarme> AlarmeList = widget.model.getAlarmeList();
+    List<Alarme> alarmsList = [];
     var prescription = Prescription.fromStorage(widget.model.prescriptionKey);
 
     return Card(
@@ -75,20 +75,20 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                     scrollDirection: Axis.horizontal,
                     shrinkWrap: true,
                     primary: true,
-                    itemCount: AlarmeList.length,
+                    itemCount: alarmsList.length,
                     itemBuilder: (context, i) {
-                      String chipText = DateFormat('HH:mm').format(AlarmeList[i].timestamp);
-                      int dayDiff = AlarmeList[i].timestamp.difference(DateTime.now()).inDays;
+                      String chipText = DateFormat('HH:mm').format(alarmsList[i].timestamp);
+                      int dayDiff = alarmsList[i].timestamp.difference(DateTime.now()).inDays;
                       if(dayDiff > 0){chipText+="+$dayDiff";}
 
                       return FilterChip(
-                        avatar: Icon(AlarmeList[i].active ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
+                        avatar: Icon(alarmsList[i].active ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
                         label: Text(chipText),
-                        selected: AlarmeList[i].active,
+                        selected: alarmsList[i].active,
                         onSelected: (selected) {
                           setState(() {
-                            AlarmeList[i].active = selected;
-                            AlarmeList[i].save();
+                            alarmsList[i].active = selected;
+                            alarmsList[i].save();
                           });
                         },
                         showCheckmark: false,

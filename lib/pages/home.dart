@@ -111,7 +111,7 @@ class _HomeState extends State<Home> {
             icon: const Icon(Icons.menu_rounded),
             onPressed: () {
               for (Medication item in testItems) {
-                alarmFromMedication(alarmsList, item);
+                alarmFromMedication(item);
               }
               printAlarms();
             },

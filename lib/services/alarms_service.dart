@@ -5,6 +5,8 @@ import 'package:alarm/alarm.dart';
 import 'package:hive/hive.dart';
 import 'package:medtrack/main.dart';
 
+List<AppAlarm> alarmsList = [];
+
 class AlarmItem {
   final String medicationKey;
   bool active = true;
@@ -18,6 +20,10 @@ class AlarmItem {
 
   bool isActive() {
     return active;
+  }
+
+  String getKey() {
+    return medicationKey;
   }
 
   factory AlarmItem.fromMap(Map<String, dynamic> map) {
@@ -152,9 +158,21 @@ class AppAlarm {
     });
     return flag;
   }
+
+  Future<bool> removeItem(String patientName, String medicationKey) async {
+    items.removeWhere((key, value) => key == patientName && value.any((e) => e.getKey() == medicationKey));
+
+    if (items.isEmpty) {
+      await Alarm.stop(alarmId);
+      await _alarmBox.delete(key);
+      return true; //remove it from list
+    }
+
+    return false; // do not remove it from list
+  }
 }
 
-void alarmFromMedication(List<AppAlarm> alarms, Medication medication) async {
+void alarmFromMedication(Medication medication) async {
   String patientName =
       Prescription.fromStorage(medication.prescriptionKey).patientName;
 
@@ -170,7 +188,7 @@ void alarmFromMedication(List<AppAlarm> alarms, Medication medication) async {
     // for (int i = 0; i < 1; i++) {
     timeStampTaken = false;
 
-    for (AppAlarm alarm in alarms) {
+    for (AppAlarm alarm in alarmsList) {
       if (alarm.timeStamp.compareTo(currentStamp) == 0) {
         alarm.addItem(medication.key, patientName);
         timeStampTaken = true;
@@ -179,7 +197,7 @@ void alarmFromMedication(List<AppAlarm> alarms, Medication medication) async {
     }
 
     if (!timeStampTaken) {
-      alarms.add(AppAlarm(
+      alarmsList.add(AppAlarm(
           key: UniqueKey().toString(),
           audioPath: 'sounds/mozart.mp3',
           timeStamp: currentStamp,

@@ -1,9 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:medtrack/models/alarm.dart';
-import 'package:medtrack/pages/home.dart';
 import 'package:medtrack/services/alarms_service.dart';
+import 'package:medtrack/models/prescription.dart';
 
 
 class Medication {
@@ -38,11 +37,22 @@ class Medication {
 
   get(String key) { return Medication.fromMap(_box.get(key)!); }
   save(){ _box.put(key, toMap()); }
-  delete(){
+  delete() async {
     _box.delete(key);
-    for (var alarm in getAlarmeList()) {
-      alarm.delete();
+    
+    String name = Prescription.fromStorage(prescriptionKey).patientName;
+    List<int> indexesToRemove = [];
+    for (int i = 0; i < alarmsList.length; i++) {
+      if (await alarmsList[i].removeItem(name, key)) {
+        indexesToRemove.add(i);
+        continue;
+      }
     }
+
+    for (int idx in indexesToRemove.reversed) {
+      alarmsList.removeAt(idx);
+    }
+
   }
 
   factory Medication.fromMap(Map<String, dynamic> map) {
@@ -77,28 +87,7 @@ class Medication {
     };
   }
 
-  //can be optimized with a 'medicationToAlarmes' box like Box<MedicationKey, List<AlarmeKey>>
-  List<Alarme> getAlarmeList() {
-    List<Alarme> alarmList = [];
-    _alarmBox.values.where((map) => map['medicationKey'] == key).forEach((map) { alarmList.add(Alarme.fromMap(map.cast<String, dynamic>())); });
-    alarmList.sort(compareAlarmes);
-    return alarmList;
-  }
-
-  updateAlarmes(){
-    alarmFromMedication(alarmsList, this);
-  }
-
-  int compareAlarmes(Alarme a, Alarme b){
-    if((!a.active && !b.active) || (a.active && b.active)){
-      return a.timestamp.compareTo(b.timestamp);
-    } else {
-      if(a.active){
-        return -1;
-      } else {
-        return 1;
-      }
-    }
-  }
+  
+  updateAlarmes() => alarmFromMedication(this);
 
 }
