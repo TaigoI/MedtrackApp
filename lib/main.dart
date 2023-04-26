@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'pages/home.dart';
 import 'theme.dart';
 import 'package:alarm/alarm.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

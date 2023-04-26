@@ -3,7 +3,6 @@ import 'package:alarm/alarm.dart';
 import 'package:medtrack/pages/home.dart';
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/models/medication.dart';
-import 'package:medtrack/models/prescription.dart';
 import 'package:hive/hive.dart';
 
 class RingScreen extends StatefulWidget {
@@ -23,7 +22,7 @@ class RingScreen extends StatefulWidget {
 }
 
 class _RingScreenState extends State<RingScreen> {
-  Map<String, List<bool>> _checklist = {};
+  final Map<String, List<bool>> _checklist = {};
 
   
   @override
