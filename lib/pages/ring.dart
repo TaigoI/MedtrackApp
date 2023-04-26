@@ -48,7 +48,6 @@ class _RingScreenState extends State<RingScreen> {
         itemsList.where((element) => element.isActive() == true).toList().length,
         false
       );
-      print(_checklist);
     });
   }
 

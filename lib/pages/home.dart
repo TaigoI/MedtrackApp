@@ -20,12 +20,6 @@ List<Medication> testItems = [
 
 List<AppAlarm> alarmsList = List.empty(growable: true);
 
-// PrescriptionItem testItem =
-//   PrescriptionItem(medicine: "Amoxilina", dose: "1", dosage: "3", dosageUnit: "MG", time: '1', date: '1');
-
-// AlarmPrescriptionItem alarmTest =
-//   AlarmPrescriptionItem(prescriptionItem: testItem, audioPath: 'sounds/mozart.mp3', vibrate: true);
-
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -35,6 +29,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final _medicationBox = Hive.box('medication');
+  final _alarmBox = Hive.box('alarm');
 
   late List<AlarmSettings> alarms;
   static StreamSubscription? subscription;
@@ -56,7 +51,7 @@ class _HomeState extends State<Home> {
       medicationDosageUnit: "MG/ML",
       doseAmount: 5,
       doseUnit: "ml",
-      interval: 330,
+      interval: 360,
       occurrences: 10,
       comments: "",
       initialDosage: DateTime(
@@ -91,7 +86,6 @@ class _HomeState extends State<Home> {
     setState(() {
       alarms = Alarm.getAlarms();
       alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
-      print('\nloaded alarms: $alarms\n');
     });
   }
 
@@ -126,7 +120,9 @@ class _HomeState extends State<Home> {
           actions: <Widget>[
             IconButton(
               icon: const Icon(Icons.account_circle_rounded),
-              onPressed: () {printAlarms();},
+              onPressed: () {printAlarms(); print('\n\n');
+                _alarmBox.toMap().forEach((key, value) {print('$key:$value');});
+              },
             )
           ],
           centerTitle: true,
@@ -167,6 +163,7 @@ class _HomeState extends State<Home> {
                   FloatingActionButton(
                     onPressed: () {
                       _clearStorage();
+                      clearAllAlarms();
                     },
                     child: const Icon(Icons.delete),
                   ),

@@ -3,6 +3,7 @@ import 'package:medtrack/models/medication.dart';
 import 'package:medtrack/models/prescription.dart';
 import 'package:alarm/alarm.dart';
 import 'package:hive/hive.dart';
+import 'package:medtrack/main.dart';
 
 class AlarmItem {
   final String medicationKey;
@@ -22,16 +23,11 @@ class AlarmItem {
   factory AlarmItem.fromMap(Map<String, dynamic> map) {
     return AlarmItem.withActive(
         medicationKey: map['medicationKey'],
-        active: map['active'] == 'true' ? true : false  
-      );
-
+        active: map['active'] == 'true' ? true : false);
   }
 
-  Map<String, dynamic> toMap(){
-    return {
-      'medicationKey': medicationKey,
-      'active': active
-    };
+  Map<String, dynamic> toMap() {
+    return {'medicationKey': medicationKey, 'active': active};
   }
 
   @override
@@ -40,17 +36,16 @@ class AlarmItem {
   }
 }
 
-Map<String, dynamic> itemsFromMap(Map<String, dynamic> map) {
-    Map<String, dynamic> itemsMap = map.map(
-      (k, v) => MapEntry(k, v.map((e) => AlarmItem.fromMap(e)))
-    );
+Map<String, dynamic> itemsFromMap(Map<dynamic, dynamic> map) {
+  Map<String, dynamic> itemsMap =
+      map.map((k, v) => MapEntry(k, v.map((e) => AlarmItem.fromMap(e))));
 
-    return itemsMap;
-  }
+  return itemsMap;
+}
+
+final _alarmBox = Hive.box('alarm');
 
 class AppAlarm {
-  static final _alarmBox = Hive.box('alarms');
-
   String key;
   DateTime timeStamp; // horário em que o alarme soará
   late Map<String, dynamic> items; // itens a serem tomados neste horário
@@ -66,7 +61,6 @@ class AppAlarm {
       required String patientName}) {
     items = {};
     items[patientName] = [AlarmItem(medicationKey: medicationKey)];
-    print(items[patientName]);
     setAlarm();
   }
 
@@ -74,7 +68,7 @@ class AppAlarm {
     return AppAlarm.fromMap(_alarmBox.get(key)!);
   }
 
-  save() async {
+  Future<void> save() async {
     await _alarmBox.put(key, toMap());
   }
 
@@ -87,36 +81,34 @@ class AppAlarm {
     setAlarmIfAlreadyNot(alarmId);
   }
 
-  factory AppAlarm.fromMap(Map<String, dynamic> map) {
+  factory AppAlarm.fromMap(Map<dynamic, dynamic> map) {
     return AppAlarm.withItems(
         key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
         timeStamp: DateTime.parse(map['timeStamp'].toString()),
         items: itemsFromMap(map['items']),
         audioPath: map['audioPath'],
         alarmId: map['alarmId']);
-  }  
+  }
 
   toMap() {
     Map<String, dynamic> map = {
       'key': key,
       'timeStamp': timeStamp,
-      'items':
-          items.map((patientName, itemsList) => 
-            MapEntry(patientName, itemsList.map((item) => item.toMap()))),
+      'items': items.map((patientName, list) =>
+          MapEntry(patientName, List.from(list.map((item) => item.toMap())))),
       'audioPath': audioPath,
       'alarmId': alarmId
     };
     return map;
   }
 
-  void addItem(String medicationKey, String patientName) {
+  void addItem(String medicationKey, String patientName) async {
     if (items.containsKey(patientName)) {
       items[patientName]!.add(AlarmItem(medicationKey: medicationKey));
     } else {
-      items[patientName] = [AlarmItem(medicationKey: medicationKey)
-      ];
+      items[patientName] = [AlarmItem(medicationKey: medicationKey)];
     }
-    save();
+    await save();
   }
 
   Future<void> setAlarm() async {
@@ -133,6 +125,7 @@ class AppAlarm {
         notificationBody: "Abra o app para confirmar que tomou");
 
     await Alarm.set(alarmSettings: alarmSettings);
+    await save();
   }
 
   Future<void> setAlarmIfAlreadyNot(int id) async {
@@ -159,7 +152,6 @@ class AppAlarm {
     });
     return flag;
   }
-
 }
 
 void alarmFromMedication(List<AppAlarm> alarms, Medication medication) async {
@@ -174,8 +166,8 @@ void alarmFromMedication(List<AppAlarm> alarms, Medication medication) async {
   DateTime currentStamp = medication.initialDosage;
   bool timeStampTaken;
 
-  // while (currentStamp.isBefore(endDate)) {
-  for (int i = 0; i < 1; i++) {
+  while (currentStamp.isBefore(endDate)) {
+    // for (int i = 0; i < 1; i++) {
     timeStampTaken = false;
 
     for (AppAlarm alarm in alarms) {
@@ -198,7 +190,7 @@ void alarmFromMedication(List<AppAlarm> alarms, Medication medication) async {
     currentStamp = currentStamp.add(Duration(minutes: medication.interval));
   }
 
-  print('\n\n');
+  print('\n\nAlarmes: ');
   printAlarms();
 }
 
@@ -212,4 +204,18 @@ void printAlarms() {
   for (AlarmSettings alarm in Alarm.getAlarms()) {
     print("alarme ${alarm.id}: [${alarm.dateTime}]");
   }
+}
+
+void clearAllAlarms() async {
+  stopAllAlarms();
+  await _alarmBox.clear();
+}
+
+List<AppAlarm> getAlarmList() {
+  List<AppAlarm> list = [];
+  _alarmBox.toMap().forEach((key, value) {
+    list.add(AppAlarm.fromMap(value));
+  });
+
+  return list;
 }

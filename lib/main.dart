@@ -3,6 +3,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'pages/home.dart';
 import 'theme.dart';
 import 'package:alarm/alarm.dart';
+import 'package:medtrack/services/alarms_service.dart';
+
+List<AppAlarm> alarmsList = [];
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,9 +21,10 @@ Future<void> main() async {
     'Você fechou o app. Por favor, abra-o novamente para que os alarmes toquem.'
   );
 
-  for (AlarmSettings alarm in Alarm.getAlarms()) {
-    await Alarm.stop(alarm.id);
-  }
+  // print("\nour alarms:");
+  // printAlarms();
+
+  alarmsList = getAlarmList();
 
   runApp(const MyApp());
 }
