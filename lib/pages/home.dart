@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/prescription.dart';
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
+import 'settings.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -49,17 +50,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () {},
-          ),
           title: Image.asset('assets/images/logo.png', height: 48),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.account_circle_rounded),
-              onPressed: () {},
-            )
-          ],
           centerTitle: true,
           elevation: 4,
         ),
@@ -103,10 +94,33 @@ class _HomeState extends State<Home> {
                   ),
               ]
           )
-        )
+        ),
+        bottomNavigationBar: BottomAppBar(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: Icon(Icons.alarm),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.home),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Settings()),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
     );
   }
-
 }
 
 /*
