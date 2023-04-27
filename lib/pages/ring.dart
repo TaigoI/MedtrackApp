@@ -21,7 +21,7 @@ class RingScreen extends StatefulWidget {
 }
 
 class _RingScreenState extends State<RingScreen> {
-  Map<String, List<bool>> _checklist = {};
+  final Map<String, List<bool>> _checklist = {};
 
   
   @override
