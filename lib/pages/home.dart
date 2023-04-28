@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/prescription.dart';
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 import 'dart:async';
 import 'package:alarm/alarm.dart';
@@ -46,7 +47,7 @@ class _HomeState extends State<Home> {
       doseUnit: "ml",
       interval: 360,
       occurrences: 10,
-      comments: "",
+      comments: "Você precisa tomar seu remédio em jejum.",
       initialDosage: DateTime(
         today.year,
         today.month,
@@ -95,6 +96,14 @@ class _HomeState extends State<Home> {
     subscription?.cancel();
     super.dispose();
   }
+
+  void readQRCode() async {
+    String code = await FlutterBarcodeScanner.scanBarcode(
+      "#FFFFFF",
+      "Cancelar",
+      false,
+      ScanMode.QR,
+    );
 
   @override
   Widget build(BuildContext context) {
@@ -146,6 +155,13 @@ class _HomeState extends State<Home> {
           child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
+                  FloatingActionButton(
+                    onPressed: () {
+                      _clearStorage();
+                    },
+                    child: const Icon(Icons.qr_code),
+                  ),
+                  const SizedBox(height: 10),
                   FloatingActionButton(
                     onPressed: () {
                       _addItem('Sample Prescription');
