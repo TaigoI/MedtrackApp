@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:medtrack/models/alarm.dart';
 import 'package:medtrack/models/prescription.dart';
 
 import '../models/medication.dart';
+import 'package:medtrack/services/alarms_service.dart';
 
 
 class MedicationWidget extends StatefulWidget {
@@ -31,11 +31,11 @@ class MedicationWidget extends StatefulWidget {
 
 class _MedicationWidgetState extends State<MedicationWidget> {
   bool edit = false;
+  List<int> llista = [1, 2, 3, 4, 5, 6, 7];
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
-    List<Alarme> alarmsList = [];
     var prescription = Prescription.fromStorage(widget.model.prescriptionKey);
 
     return Card(
@@ -75,21 +75,37 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                     scrollDirection: Axis.horizontal,
                     shrinkWrap: true,
                     primary: true,
-                    itemCount: alarmsList.length,
+                    itemCount: widget.model.timeStamps.length,
                     itemBuilder: (context, i) {
-                      String chipText = DateFormat('HH:mm').format(alarmsList[i].timestamp);
-                      int dayDiff = alarmsList[i].timestamp.difference(DateTime.now()).inDays;
+                      String chipText = DateFormat('HH:mm').format(widget.model.timeStamps[i].timeStamp);
+                      int dayDiff = widget.model.timeStamps[i].timeStamp.difference(DateTime.now()).inDays;
                       if(dayDiff > 0){chipText+="+$dayDiff";}
 
                       return FilterChip(
-                        avatar: Icon(alarmsList[i].active ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
+                        avatar: Icon(widget.model.timeStamps[i].active ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
                         label: Text(chipText),
-                        selected: alarmsList[i].active,
-                        onSelected: (selected) {
+                        selected: widget.model.timeStamps[i].active,
+                        onSelected: (selected) async {
                           setState(() {
-                            alarmsList[i].active = selected;
-                            alarmsList[i].save();
+                            widget.model.timeStamps[i].active = selected;
+                            
+                            String patientName = Prescription.fromStorage(widget.model.prescriptionKey).patientName;
+                            
+                            if (!widget.model.timeStamps[i].active) {
+                              setItemInactive(
+                                widget.model.timeStamps[i].timeStamp, 
+                                patientName, 
+                                widget.model.key
+                              );
+                            }
+                            else {
+                              setItemActive(
+                                widget.model.timeStamps[i].timeStamp, 
+                                patientName, 
+                                widget.model.key);
+                            }
                           });
+                          await widget.model.save();
                         },
                         showCheckmark: false,
                         elevation: 2,

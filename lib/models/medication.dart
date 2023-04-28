@@ -4,6 +4,31 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/models/prescription.dart';
 
+class AlarmStamp {
+  final DateTime timeStamp;
+  bool active = true;
+
+  AlarmStamp({required this.timeStamp});
+  AlarmStamp.withActive({required this.timeStamp, required this.active});
+
+  factory AlarmStamp.fromMap(Map<dynamic, dynamic> map) {
+    return AlarmStamp.withActive(
+      timeStamp: map.containsKey('timeStamp') ? DateTime.parse(map['timeStamp'].toString()) : DateTime.now(),
+      active: map['active'] 
+    );
+  }
+
+  toMap() {
+    Map<String, dynamic> map = {
+      'timeStamp': timeStamp.toString(),
+      'active': active
+    };
+
+    return map;
+  }
+}
+
+
 
 class Medication {
   static final _box = Hive.box('medication');
@@ -20,7 +45,8 @@ class Medication {
   String comments; //orientações gerais livres para o uso do medicamento a critério do médico
   DateTime initialDosage; //primeira vez que o paciente tomou o remédio
   String prescriptionKey;
-
+  late List<AlarmStamp> timeStamps;
+  
   Medication({
     required this.key,
     required this.prescriptionKey,
@@ -33,6 +59,21 @@ class Medication {
     required this.occurrences,
     required this.comments,
     required this.initialDosage
+  });
+
+  Medication.withStamps({
+    required this.key,
+    required this.prescriptionKey,
+    required this.medicationName,
+    required this.medicationDosageAmount,
+    required this.medicationDosageUnit,
+    required this.doseAmount,
+    required this.doseUnit,
+    required this.interval,
+    required this.occurrences,
+    required this.comments,
+    required this.initialDosage,
+    required this.timeStamps
   });
 
   get(String key) { return Medication.fromMap(_box.get(key)!); }
@@ -55,8 +96,8 @@ class Medication {
 
   }
 
-  factory Medication.fromMap(Map<String, dynamic> map) {
-    return Medication(
+  factory Medication.fromMap(Map<dynamic, dynamic> map) {
+    return Medication.withStamps(
         key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
         prescriptionKey: map['prescriptionKey'].toString(),
         medicationName: map['medicationName'].toString(),
@@ -67,7 +108,8 @@ class Medication {
         interval: int.parse(map['interval'].toString()),
         occurrences: int.parse(map['occurrences'].toString()),
         comments: map['comments'].toString(),
-        initialDosage: map.containsKey('initialDosage') ? DateTime.parse(map['initialDosage'].toString()) : DateTime.now()
+        initialDosage: map.containsKey('initialDosage') ? DateTime.parse(map['initialDosage'].toString()) : DateTime.now(),
+        timeStamps: List.from(map['timeStamps'].map((item) => AlarmStamp.fromMap(item))) 
     );
   }
 
@@ -84,10 +126,13 @@ class Medication {
       'occurrences': occurrences,
       'comments': comments,
       'initialDosage': initialDosage.toString(),
+      'timeStamps': List.from(timeStamps.map((item) => item.toMap()))
     };
   }
 
   
-  updateAlarmes() => alarmFromMedication(this);
+  updateAlarmes() async {
+    timeStamps = await alarmFromMedication(this);
+  }
 
 }

@@ -5,8 +5,6 @@ import 'theme.dart';
 import 'package:alarm/alarm.dart';
 import 'package:medtrack/services/alarms_service.dart';
 
-List<AppAlarm> alarmsList = [];
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -20,9 +18,6 @@ Future<void> main() async {
     'Seus alarmes podem não tocar', 
     'Você fechou o app. Por favor, abra-o novamente para que os alarmes toquem.'
   );
-
-  // print("\nour alarms:");
-  // printAlarms();
 
   alarmsList = getAlarmList();
 

@@ -13,13 +13,6 @@ import 'package:medtrack/pages/ring.dart';
 DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
 
 DateTime today = DateTime.now();
-
-List<Medication> testItems = [
-
-];
-
-List<AppAlarm> alarmsList = List.empty(growable: true);
-
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -34,7 +27,7 @@ class _HomeState extends State<Home> {
   late List<AlarmSettings> alarms;
   static StreamSubscription? subscription;
 
-  _addItem(String title) {
+  _addItem(String title) async {
     var prescriptionModel = Prescription(
       key: UniqueKey().toString(),
       doctorName: "Médico do Taígo",
@@ -64,8 +57,8 @@ class _HomeState extends State<Home> {
         0,
         )
     );
+    await medication.updateAlarmes();
     medication.save();
-    medication.updateAlarmes();
 
   }
 
@@ -110,10 +103,10 @@ class _HomeState extends State<Home> {
           leading: IconButton(
             icon: const Icon(Icons.menu_rounded),
             onPressed: () {
-              for (Medication item in testItems) {
-                alarmFromMedication(item);
-              }
-              printAlarms();
+              // for (Medication item in testItems) {
+              //   alarmFromMedication(item);
+              // }
+              // printAlarms();
             },
           ),
           title: Image.asset('assets/images/logo.png', height: 48),
