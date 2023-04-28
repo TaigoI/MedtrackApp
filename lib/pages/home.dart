@@ -104,6 +104,7 @@ class _HomeState extends State<Home> {
       false,
       ScanMode.QR,
     );
+  }
 
   @override
   Widget build(BuildContext context) {
