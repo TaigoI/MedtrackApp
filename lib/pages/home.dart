@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:medtrack/services/generate_qr_code.dart';
 import '../models/prescription.dart';
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
@@ -24,6 +25,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final _medicationBox = Hive.box('medication');
   final _alarmBox = Hive.box('alarm');
+  String chave = "chave";
 
   late List<AlarmSettings> alarms;
   static StreamSubscription? subscription;
@@ -48,24 +50,27 @@ class _HomeState extends State<Home> {
       interval: 360,
       occurrences: 10,
       comments: "Você precisa tomar seu remédio em jejum.",
-      initialDosage: DateTime(
-        today.year,
-        today.month,
-        today.day,
-        21,
-        0,
-        0,
-        0,
-        )
+      initialDosage: 
+      //DateTime(
+      //   today.year,
+      //   today.month,
+      //   today.day,
+      //   21,
+      //   0,
+      //   0,
+      //   0,
+      //   )
+      today.add(const Duration(seconds: 10))
     );
     await medication.updateAlarmes();
     medication.save();
-
   }
 
   _clearStorage() async {
     Hive.box('medication').clear();
     Hive.box('prescription').clear();
+    Hive.box('alarms').clear();
+    stopAllAlarms();
   }
 
   @override
@@ -97,34 +102,42 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-  void readQRCode() async {
-    String code = await FlutterBarcodeScanner.scanBarcode(
-      "#FFFFFF",
-      "Cancelar",
-      false,
-      ScanMode.QR,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
+    
+    String ticket = "";
+    
+    void readQRCode() async {
+      String code = await FlutterBarcodeScanner.scanBarcode(
+        Theme.of(context).primaryColor.toString(),
+        "Cancelar",
+        true,
+        ScanMode.QR,
+      );
+      setState(() => ticket = code != "-1" ? code : 'Não validado');
+    }
+
+
     return Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.menu_rounded),
-            onPressed: () {
-              // for (Medication item in testItems) {
-              //   alarmFromMedication(item);
-              // }
-              // printAlarms();
+            onPressed: () async {
+              String chave = await generateQrCodeAndShareIt();
+              print("chave gerada: $chave");
             },
           ),
           title: Image.asset('assets/images/logo.png', height: 48),
           actions: <Widget>[
             IconButton(
               icon: const Icon(Icons.account_circle_rounded),
-              onPressed: () {printAlarms(); print('\n\n');
-                _alarmBox.toMap().forEach((key, value) {print('$key:$value');});
+              onPressed: () {
+                try {
+                  readQRCode();
+                  print("lido: $ticket");  } catch(e) {
+                  print("\nerro na leitura: $e");
+                }
               },
             )
           ],

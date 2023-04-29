@@ -9,7 +9,6 @@ class RingScreen extends StatefulWidget {
   final Box<dynamic> medicationBox;
   
   late AppAlarm appAlarm;
-  
 
   RingScreen({super.key, required this.alarmSettings, required this.medicationBox}) {
     appAlarm = alarmsList
@@ -51,21 +50,24 @@ class _RingScreenState extends State<RingScreen> {
 
   Widget medicationCheckBox(
       BuildContext context, AlarmItem item, int idx, String patientName) {
-    Medication med = Medication.fromMap(
-        widget.medicationBox
-        .get(item.medicationKey)
-        .cast<String, dynamic>());
-    
-    return CheckboxListTile(
-      value: _checklist[patientName]![idx],
-      onChanged: (bool? value) {
-        setState(() => _checklist[patientName]![idx] = value!);
-      },
-      title: Text(
-        "${med.medicationName} * ${med.doseAmount}${med.doseUnit}",
-      ),
-      secondary: const Icon(Icons.medication_outlined),
-    );
+      
+    if (widget.medicationBox.containsKey(item.medicationKey)) {
+      Medication med = Medication.fromMap(
+          widget.medicationBox
+          .get(item.medicationKey));
+      
+      return CheckboxListTile(
+        value: _checklist[patientName]![idx],
+        onChanged: (bool? value) {
+          setState(() => _checklist[patientName]![idx] = value!);
+        },
+        title: Text(
+          "${med.medicationName} * ${med.doseAmount}${med.doseUnit}",
+        ),
+        secondary: const Icon(Icons.medication_outlined),
+      );
+    }
+    return Container();
   }
 
   Widget patientCard(BuildContext context, String patientName, List<AlarmItem> items) {
@@ -102,6 +104,8 @@ class _RingScreenState extends State<RingScreen> {
 
   List<Widget> getPatientsCards(
       BuildContext context, Map<String, dynamic> items) {
+        print("items: $items");
+        print(items['Taígo'].runtimeType);
     List<Widget> cards = [];
     for (String name in items.keys) {
       cards.add(patientCard(context, name, items[name]!));

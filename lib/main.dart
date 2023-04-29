@@ -20,7 +20,10 @@ Future<void> main() async {
     'Você fechou o app. Por favor, abra-o novamente para que os alarmes toquem.'
   );
 
+
   alarmsList = getAlarmList();
+  
+  await stopAllAlarms();
 
   runApp(const MyApp());
 }

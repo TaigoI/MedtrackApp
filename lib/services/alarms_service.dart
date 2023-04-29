@@ -211,8 +211,8 @@ Future<List<AlarmStamp>> alarmFromMedication(Medication medication) async {
 
   List<AlarmStamp> times = [];
 
-  while (currentStamp.isBefore(endDate)) {
-    // for (int i = 0; i < 1; i++) {
+  // while (currentStamp.isBefore(endDate)) {
+    for (int i = 0; i < 1; i++) {
     times.add(AlarmStamp(timeStamp: currentStamp));
     timeStampTaken = false;
 
@@ -242,7 +242,7 @@ Future<List<AlarmStamp>> alarmFromMedication(Medication medication) async {
   return times;
 }
 
-void stopAllAlarms() async {
+Future<void> stopAllAlarms() async {
   for (AlarmSettings alarm in Alarm.getAlarms()) {
     await Alarm.stop(alarm.id);
   }
