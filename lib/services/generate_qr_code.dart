@@ -10,15 +10,17 @@ import 'package:share/share.dart';
 Future<String> generateQrCodeAndShareIt() async {
   String code = UniqueKey().toString();
   String path = await generateQrPicture(code);
+  if (path != "-1") {
+    await Share.shareFiles(
+      [path],
+      mimeTypes: ["image/png"],
+      subject: 'Medtrack QRCode',
+      text: "Imprima para fazer a verificação"
+    );
 
-  await Share.shareFiles(
-    [path],
-    mimeTypes: ["image/png"],
-    subject: 'Medtrack QRCode',
-    text: "Imprima para fazer a verificação"
-  );
-
-  return code;
+    return code;
+  }
+  return "-1";
 } 
 
 Future<String> generateQrPicture(String code) async {
@@ -28,29 +30,30 @@ Future<String> generateQrPicture(String code) async {
     errorCorrectionLevel: QrErrorCorrectLevel.L
   );
 
-  if (qrValidationResult.status == QrValidationStatus.error) {
-    print("Erro na validação");
+  if (qrValidationResult.status != QrValidationStatus.error) {
+    final QrCode qrCode = qrValidationResult.qrCode!;
+    final painter = QrPainter.withQr(
+      qr: qrCode,
+      color: const Color(0xFFFFFFFF),
+      gapless: false,
+      embeddedImage: null,
+      embeddedImageStyle: null
+    );
+
+    Directory tempDir = await getTemporaryDirectory();
+    final ts = DateTime.now().millisecondsSinceEpoch.toString();
+    String path = '${tempDir.path}/$ts.png';
+
+    final picData = await painter.toImageData(2048, 
+      format: ImageByteFormat.png,
+    );
+    await writeToFile(picData!, path);
+
+    return path;
   }
 
-  final QrCode qrCode = qrValidationResult.qrCode!;
-  final painter = QrPainter.withQr(
-    qr: qrCode,
-    color: const Color(0xFFFFFFFF),
-    gapless: false,
-    embeddedImage: null,
-    embeddedImageStyle: null
-  );
+  return "-1";
 
-  Directory tempDir = await getTemporaryDirectory();
-  final ts = DateTime.now().millisecondsSinceEpoch.toString();
-  String path = '${tempDir.path}/$ts.png';
-
-  final picData = await painter.toImageData(2048, 
-    format: ImageByteFormat.png,
-  );
-  await writeToFile(picData!, path);
-
-  return path;
 }
 
 Future<void> writeToFile(ByteData picData, String path) async {

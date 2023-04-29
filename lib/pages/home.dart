@@ -4,7 +4,6 @@ import 'package:medtrack/services/generate_qr_code.dart';
 import '../models/prescription.dart';
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 import 'dart:async';
 import 'package:alarm/alarm.dart';
@@ -105,39 +104,21 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    
-    String ticket = "";
-    
-    void readQRCode() async {
-      String code = await FlutterBarcodeScanner.scanBarcode(
-        Theme.of(context).primaryColor.toString(),
-        "Cancelar",
-        true,
-        ScanMode.QR,
-      );
-      setState(() => ticket = code != "-1" ? code : 'Não validado');
-    }
-
-
     return Scaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.menu_rounded),
-            onPressed: () async {
-              String chave = await generateQrCodeAndShareIt();
-              print("chave gerada: $chave");
+            onPressed: () {
+              Navigator.pushNamed(context, '/scan/confirm');
             },
           ),
           title: Image.asset('assets/images/logo.png', height: 48),
           actions: <Widget>[
             IconButton(
               icon: const Icon(Icons.account_circle_rounded),
-              onPressed: () {
-                try {
-                  readQRCode();
-                  print("lido: $ticket");  } catch(e) {
-                  print("\nerro na leitura: $e");
-                }
+              onPressed: () async {
+                String code = await generateQrCodeAndShareIt();
+                print(code);
               },
             )
           ],

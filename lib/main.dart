@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:medtrack/pages/read_qr_code.dart';
 import 'pages/home.dart';
 import 'theme.dart';
 import 'package:alarm/alarm.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:medtrack/services/alarms_service.dart';
+
+const String chave = "medtrack qrCode";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +42,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const Home(),
+        '/scan/confirm': (context) => const ScanQrCode(goalKey: chave)
       },
       // home: Home(),
     );
