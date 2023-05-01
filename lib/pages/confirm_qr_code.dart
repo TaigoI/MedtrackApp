@@ -4,31 +4,25 @@ import 'package:medtrack/widgets/scanner_error_widget.dart';
 import 'package:alarm/alarm.dart';
 
 class ScanQrCode extends StatefulWidget {
-  final String goalKey;
-  // final int alarmId;
-  const ScanQrCode({
-    Key? key, 
-    required this.goalKey, 
-    // required this.alarmId
-    }) : super(key: key);
 
+  const ScanQrCode({Key? key}) : super(key: key);
 
   @override
-  State<ScanQrCode> createState() =>
-      _ScanQrCodeState();
+  State<ScanQrCode> createState() => _ScanQrCodeState();
 }
 
 class _ScanQrCodeState extends State<ScanQrCode> {
   BarcodeCapture? barcode;
+  String message = "Escaneie o QR code!";
 
   final MobileScannerController controller = MobileScannerController(
-    torchEnabled: false,
-    formats: [BarcodeFormat.qrCode],
-    facing: CameraFacing.back,
-    detectionSpeed: DetectionSpeed.normal
-    // detectionTimeoutMs: 1000,
-    // returnImage: false,
-  );
+      torchEnabled: false,
+      formats: [BarcodeFormat.qrCode],
+      facing: CameraFacing.back,
+      detectionSpeed: DetectionSpeed.normal
+      // detectionTimeoutMs: 1000,
+      // returnImage: false,
+      );
 
   bool isStarted = true;
 
@@ -54,22 +48,17 @@ class _ScanQrCodeState extends State<ScanQrCode> {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    
+    final String confirmationKey = args['confirmationKey'];
+    final int alarmId = args['alarmId'];
+
     return Scaffold(
       appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () {},
-          ),
-          title: Image.asset('assets/images/logo.png', height: 48),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.account_circle_rounded),
-              onPressed: () {},
-            )
-          ],
-          centerTitle: true,
-          elevation: 4,
-        ),
+        title: Image.asset('assets/images/logo.png', height: 48),
+        centerTitle: true,
+        elevation: 4,
+      ),
       backgroundColor: Colors.black,
       body: Builder(
         builder: (context) {
@@ -84,8 +73,12 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                 onDetect: (barcode) {
                   setState(() {
                     this.barcode = barcode;
+                    if (this.barcode!.barcodes.first.rawValue == confirmationKey) {
+                      Alarm.stop(alarmId).then((_) => Navigator.pushNamed(context, '/'));
+                    } else {
+                      setState(() => message = "Não reconhecido [${this.barcode!.barcodes.first.rawValue} != $confirmationKey]");
+                    }
                   });
-                  print("Lido: ${this.barcode}");
                 },
               ),
               Align(
@@ -140,30 +133,29 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                             : const Icon(Icons.play_arrow),
                         iconSize: 32.0,
                         onPressed: () {
-                            _startOrStop();
-                            // showDialog<String>(
-                            //   context: context,
-                            //   builder: (BuildContext context) => AlertDialog(
-                            //     title: const Text("Cancelar ação"),
-                            //     content: const Text(
-                            //       "Se você não consegue confirmar agora, clique em confirmar."
-                            //     ),
-                            //     actions: <Widget>[
-                            //       TextButton(
-                            //         onPressed: () => Navigator.pop(context), 
-                            //         child: const Text("Cancelar")
-                            //       ),
-                            //       TextButton(
-                            //         onPressed: () {
-                            //           Alarm.stop(widget.alarmId).then((_) => Navigator.pushNamed(context, '/'));
-                            //         },
-                            //         child: const Text("Confirmar")
-                            //       )
-                            //     ],
-                            //   )
-                            // );
-                        } 
-                        ,
+                          _startOrStop();
+                          showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              title: const Text("Cancelar ação"),
+                              content: const Text(
+                                "Se você não tem acesso ao QRcode agora, clique em confirmar."
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("Cancelar")
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Alarm.stop(alarmId).then((_) => Navigator.pushNamed(context, '/'));
+                                  },
+                                  child: const Text("Confirmar")
+                                )
+                              ],
+                            )
+                          );
+                        },
                       ),
                       Center(
                         child: SizedBox(
@@ -171,8 +163,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                           height: 50,
                           child: FittedBox(
                             child: Text(
-                              barcode?.barcodes.first.rawValue ??
-                                  'Escaneie o QRCode!',
+                              message,
                               overflow: TextOverflow.fade,
                               style: Theme.of(context)
                                   .textTheme

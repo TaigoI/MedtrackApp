@@ -24,7 +24,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final _medicationBox = Hive.box('medication');
   final _alarmBox = Hive.box('alarm');
-  String chave = "chave";
 
   late List<AlarmSettings> alarms;
   static StreamSubscription? subscription;
@@ -66,16 +65,18 @@ class _HomeState extends State<Home> {
   }
 
   _clearStorage() async {
-    Hive.box('medication').clear();
-    Hive.box('prescription').clear();
-    Hive.box('alarms').clear();
-    stopAllAlarms();
+    await Hive.box('medication').clear();
+    await Hive.box('prescription').clear();
+    await Hive.box('alarms').clear();
+    await stopAllAlarms();
   }
 
   @override
   void initState() {
     super.initState();
+    _clearStorage();
     loadAlarms();
+    stopDeprecatedAlarms();
     subscription ??= Alarm.ringStream.stream
         .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
   }
@@ -86,6 +87,17 @@ class _HomeState extends State<Home> {
       alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
     });
   }
+
+  Future<void> stopDeprecatedAlarms() async {
+    final now = DateTime.now();
+
+    for (AlarmSettings alarm in Alarm.getAlarms()) {
+      if (alarm.dateTime.isBefore(now)) {
+        await Alarm.stop(alarm.id);
+      }
+    }
+  }
+
 
   Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
     await Navigator.push(

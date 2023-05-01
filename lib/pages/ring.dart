@@ -21,6 +21,8 @@ class RingScreen extends StatefulWidget {
 
 class _RingScreenState extends State<RingScreen> {
   final Map<String, List<bool>> _checklist = {};
+  final bool confirmation = true;
+  final String confirmationKey = "teste";
 
   
   @override
@@ -122,6 +124,8 @@ class _RingScreenState extends State<RingScreen> {
     } 
     return true; 
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -226,10 +230,19 @@ class _RingScreenState extends State<RingScreen> {
                       onPressed: !checkedEverything()
                           ? null
                           : () {
-                              Alarm.stop(widget.alarmSettings.id)
-                                  .then((_) => Navigator.pop(context));
+                              if (confirmation) {
+                                Navigator.pushNamed(context, '/scan/confirm', arguments: 
+                                <String, dynamic> {
+                                  'confirmationKey': confirmationKey,
+                                  'alarmId': widget.appAlarm.alarmId
+                                });
+                              }
+                              else {
+                                Alarm.stop(widget.alarmSettings.id)
+                                    .then((_) => Navigator.pop(context));
+                              }
                             },
-                      icon: const Icon(Icons.check),
+                      icon: confirmation ? const Icon(Icons.qr_code) : const Icon(Icons.check),
                       label: const Text("Confirmar")),
                 ],
               )
