@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/prescription.dart';
 
 
@@ -14,7 +15,7 @@ class PrescriptionWidget extends StatefulWidget {
 
     return PrescriptionWidget(
       key: ValueKey(json['key']),
-      model: Prescription.fromJson(json),
+      model: Prescription.fromMap(json),
     );
   }
 

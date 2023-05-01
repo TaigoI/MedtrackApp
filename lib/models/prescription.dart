@@ -19,39 +19,44 @@ class Prescription {
     required this.doctorRegistration,
   });
 
-  persist(){
-    _box.put(key, toJSON());
+  static newKey(){
+    int i = 0;
+    while (i < 10000){
+      String key = UniqueKey().toString();
+      if(!exists(key)){
+        return key;
+      }
+      i++;
+    }
+  }
+  static exists(String key){
+    return _box.containsKey(key);
   }
 
+  get(String key) { return Prescription.fromMap(_box.get(key)!); }
+  save(){_box.put(key, toJSON());}
   delete(){
     _box.delete(key);
     _medicationBox.values.where((item) => item.prescriptionKey == key).forEach((element) { element.delete(); });
   }
 
-  factory Prescription.fromStorage(String key) {
-    var prescription = _box.get(key);
-    return prescription != null
-        ? Prescription.fromJson(jsonDecode(prescription))
-        : Prescription(key: UniqueKey().toString(), patientName: "Paciente não especificado", doctorName: "Médico não especificado", doctorRegistration: "");
-  }
-
-  factory Prescription.fromJson(Map<String, dynamic> json) {
+  factory Prescription.fromMap(Map<String, dynamic> map) {
     return Prescription(
-      key: json.containsKey('key') ? json['key'] : UniqueKey().toString(),
-      patientName: json['patientName'].toString(),
-      doctorName: json['doctorName'].toString(),
-      doctorRegistration: json['doctorRegistration'].toString(),
+      key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
+      patientName: map['patientName'].toString(),
+      doctorName: map['doctorName'].toString(),
+      doctorRegistration: map['doctorRegistration'].toString(),
     );
   }
 
   toJSON() {
-    Map<String, dynamic> json = {
+    Map<String, dynamic> map = {
       "key": key,
       "doctorName": doctorName,
       "doctorRegistration": doctorRegistration,
       "patientName": patientName,
     };
-    return jsonEncode(json);
+    return jsonEncode(map);
   }
 
 }

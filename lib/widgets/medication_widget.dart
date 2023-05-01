@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:medtrack/enums/dose_unit.dart';
+import 'package:medtrack/enums/plural.dart';
+import 'package:medtrack/enums/time_unit.dart';
 import 'package:medtrack/models/alarm.dart';
-import 'package:medtrack/models/prescription.dart';
+import 'package:medtrack/pages/medication_page.dart';
 
 import '../models/medication.dart';
 
@@ -29,6 +32,8 @@ class MedicationWidget extends StatefulWidget {
 
 }
 
+enum MedicationWidgetMenuOption { edit, delete, share }
+
 class _MedicationWidgetState extends State<MedicationWidget> {
   bool edit = false;
 
@@ -36,7 +41,6 @@ class _MedicationWidgetState extends State<MedicationWidget> {
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
     List<Alarm> alarmList = widget.model.getAlarmList();
-    var prescription = Prescription.fromStorage(widget.model.prescriptionKey);
 
     return Card(
       child: Container(
@@ -54,18 +58,50 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         Text(
-                          "${widget.model.medicationDosageAmount} ${widget.model.medicationDosageUnit}",
+                          widget.model.medicationDosage,
                           style: Theme.of(context).textTheme.labelSmall,
                         )
                       ],
                     ),
                     const Spacer(),
-                    IconButton(onPressed: () { widget.model.delete(); }, icon: const Icon(Icons.delete)),
+                    PopupMenuButton<MedicationWidgetMenuOption>(
+                      onSelected: (MedicationWidgetMenuOption item) {
+                        switch(item){
+                          case MedicationWidgetMenuOption.edit:
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => MedicationPage(medication: widget.model, isNew: false,)),
+                            );
+                            break;
+                          case MedicationWidgetMenuOption.delete:
+                            widget.model.delete();
+                            break;
+                          case MedicationWidgetMenuOption.share:
+                            // TODO: Handle this case.
+                            break;
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<MedicationWidgetMenuOption>>[
+                        //TODO: allow share
+                        /*const PopupMenuItem<MedicationWidgetMenuOption>(
+                          value: MedicationWidgetMenuOption.share,
+                          child: Text('Exportar'),
+                        ),*/
+                        const PopupMenuItem<MedicationWidgetMenuOption>(
+                          value: MedicationWidgetMenuOption.edit,
+                          child: Text('Editar'),
+                        ),
+                        const PopupMenuItem<MedicationWidgetMenuOption>(
+                          value: MedicationWidgetMenuOption.delete,
+                          child: Text('Excluir'),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Text(
-                    "${prescription.patientName}, tomar ${widget.model.doseAmount}${widget.model.doseUnit}",
+                    "${widget.model.patientName}, tomar ${widget.model.doseAmount} ${DoseUnitController.asText(PluralController.fromAmount(widget.model.doseAmount), widget.model.doseUnit)} a cada ${widget.model.interval} ${TimeUnitController.asText(PluralController.fromAmount(widget.model.interval), widget.model.intervalUnit)}",
                     style: Theme.of(context).textTheme.bodyMedium
                 ),
                 const SizedBox(height: 8),
@@ -99,7 +135,10 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                       return const SizedBox(width: 4);
                     },
                   ),
-                )
+                ),
+
+                widget.model.comments == "" ? Container() : const SizedBox(height: 8),
+                widget.model.comments == "" ? Container() : Text(widget.model.comments, style: Theme.of(context).textTheme.bodyMedium),
               ],
             )
       )
