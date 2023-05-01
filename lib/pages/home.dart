@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/prescription.dart';
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
+import '../widgets/bottom_bar.dart';
 import 'settings.dart';
 
 class Home extends StatefulWidget {
@@ -100,7 +101,7 @@ class _HomeState extends State<Home> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               IconButton(
-                icon: Icon(Icons.alarm),
+                icon: Icon(Icons.qr_code),
                 onPressed: () {},
               ),
               IconButton(
