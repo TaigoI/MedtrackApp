@@ -76,7 +76,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                     if (this.barcode!.barcodes.first.rawValue == confirmationKey) {
                       Alarm.stop(alarmId).then((_) => Navigator.pushNamed(context, '/'));
                     } else {
-                      setState(() => message = "Não reconhecido [${this.barcode!.barcodes.first.rawValue} != $confirmationKey]");
+                      setState(() => message = "Código não reconhecido.");
                     }
                   });
                 },

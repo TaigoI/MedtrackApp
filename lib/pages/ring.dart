@@ -106,8 +106,6 @@ class _RingScreenState extends State<RingScreen> {
 
   List<Widget> getPatientsCards(
       BuildContext context, Map<String, dynamic> items) {
-        print("items: $items");
-        print(items['Taígo'].runtimeType);
     List<Widget> cards = [];
     for (String name in items.keys) {
       cards.add(patientCard(context, name, items[name]!));
