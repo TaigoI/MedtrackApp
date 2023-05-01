@@ -64,7 +64,7 @@ class _RingScreenState extends State<RingScreen> {
           setState(() => _checklist[patientName]![idx] = value!);
         },
         title: Text(
-          "${med.medicationName} * ${med.doseAmount}${med.doseUnit}",
+          "${med.medicationName}, tomar ${med.doseAmount}${med.doseUnit}",
         ),
         secondary: const Icon(Icons.medication_outlined),
       );
