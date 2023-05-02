@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/pages/medication_page.dart';
 import 'package:medtrack/pages/read_json.dart';
+import 'package:medtrack/pages/settings_page.dart';
 
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
