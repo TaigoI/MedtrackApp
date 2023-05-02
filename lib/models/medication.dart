@@ -148,15 +148,34 @@ class Medication {
   }
 
   buildAlarms(){
+    var intervalInMinutes = getIntervalInMinutes();
     for(int i = 0; i < occurrences; i++){
       var alarm = Alarm(
         key: UniqueKey().toString(),
         medicationKey: key,
         active: true,
-        timestamp: initialDosage!.add(Duration(minutes: i*interval)),
+        timestamp: initialDosage!.add(Duration(minutes: i*intervalInMinutes)),
       );
       alarm.save();
     }
+
+    expectedFinalDosage = initialDosage!.add(Duration(minutes:(occurrences-1)*intervalInMinutes));
+    save();
+  }
+
+  clearAlarms(){
+    var alarmList = getAlarmList();
+    for (var element in alarmList) { element.delete(); }
+    initialDosage = null;
+    expectedFinalDosage = null;
+    save();
+  }
+
+  int getIntervalInMinutes(){
+    if(intervalUnit == TimeUnitOption.week) return interval*60*24*7;
+    if(intervalUnit == TimeUnitOption.day) return interval*60*24;
+    if(intervalUnit == TimeUnitOption.hour) return interval*60;
+    return interval;
   }
 
   int compareAlarms(Alarm a, Alarm b){

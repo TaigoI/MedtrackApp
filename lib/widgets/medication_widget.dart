@@ -8,31 +8,33 @@ import 'package:medtrack/pages/medication_page.dart';
 
 import '../models/medication.dart';
 
-
 class MedicationWidget extends StatefulWidget {
-
   final Medication model;
+
   const MedicationWidget({super.key, required this.model});
 
   @override
   State<StatefulWidget> createState() => _MedicationWidgetState();
 
-  factory MedicationWidget.fromMap(Map<String, dynamic> map){
+  factory MedicationWidget.fromMap(Map<String, dynamic> map) {
     bool hasKey = !map.containsKey('key');
-    if(hasKey) { map['key'] = UniqueKey().toString(); }
+    if (hasKey) {
+      map['key'] = UniqueKey().toString();
+    }
 
     var model = Medication.fromMap(map);
-    if(hasKey) { model.save(); }
+    if (hasKey) {
+      model.save();
+    }
 
     return MedicationWidget(
-        key: ValueKey(map['key']),
-        model: model,
+      key: ValueKey(map['key']),
+      model: model,
     );
   }
-
 }
 
-enum MedicationWidgetMenuOption { edit, delete, share }
+enum MedicationWidgetMenuOption { edit, delete, resetAlarms, share }
 
 class _MedicationWidgetState extends State<MedicationWidget> {
   bool edit = false;
@@ -43,109 +45,184 @@ class _MedicationWidgetState extends State<MedicationWidget> {
     List<Alarm> alarmList = widget.model.getAlarmList();
 
     return Card(
-      child: Container(
-          margin: const EdgeInsets.only(top: 12, bottom: 12, left: 12, right: 4),
         child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: <Widget>[
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.model.medicationName,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        Text(
-                          widget.model.medicationDosage,
-                          style: Theme.of(context).textTheme.labelSmall,
-                        )
-                      ],
-                    ),
-                    const Spacer(),
-                    PopupMenuButton<MedicationWidgetMenuOption>(
-                      onSelected: (MedicationWidgetMenuOption item) {
-                        switch(item){
-                          case MedicationWidgetMenuOption.edit:
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => MedicationPage(medication: widget.model, isNew: false,)),
-                            );
-                            break;
-                          case MedicationWidgetMenuOption.delete:
-                            widget.model.delete();
-                            break;
-                          case MedicationWidgetMenuOption.share:
-                            // TODO: Handle this case.
-                            break;
-                        }
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 12, bottom: 12, left: 12, right: 4),
+          child: Row(
+            children: <Widget>[
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.model.medicationName,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  Text(
+                    widget.model.medicationDosage,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  )
+                ],
+              ),
+              const Spacer(),
+              PopupMenuButton<MedicationWidgetMenuOption>(
+                onSelected: (MedicationWidgetMenuOption item) {
+                  switch (item) {
+                    case MedicationWidgetMenuOption.edit:
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MedicationPage(
+                              medication: widget.model,
+                              isNew: false,
+                            )),
+                      );
+                      break;
+                    case MedicationWidgetMenuOption.delete:
+                      widget.model.delete();
+                      break;
+                    case MedicationWidgetMenuOption.share:
+                      // TODO: Handle this case.
+                      break;
+                    case MedicationWidgetMenuOption.resetAlarms:
+                      widget.model.clearAlarms();
+                      initialDosagePicker(context);
+                      break;
+                  }
+                },
+                itemBuilder: (BuildContext context) => getMenuList(context)
+              ),
+            ],
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(bottom: 12, left: 12, right: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                  "${widget.model.patientName}, ${widget.model.doseAmount} ${DoseUnitController.asText(PluralController.fromAmount(widget.model.doseAmount), widget.model.doseUnit)} a cada ${widget.model.interval} ${TimeUnitController.asText(PluralController.fromAmount(widget.model.interval), widget.model.intervalUnit)}",
+                  style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 8),
+              widget.model.initialDosage != null
+                  ? SizedBox(
+                height: 48,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  primary: true,
+                  itemCount: alarmList.length,
+                  itemBuilder: (context, i) {
+                    String chipText =
+                    DateFormat('HH:mm').format(alarmList[i].timestamp);
+                    int dayDiff = alarmList[i]
+                        .timestamp
+                        .difference(DateTime.now())
+                        .inDays;
+                    if (dayDiff > 0) {
+                      chipText += "+$dayDiff";
+                    }
+
+                    return FilterChip(
+                      avatar: Icon(
+                        alarmList[i].active
+                            ? Icons.access_time_filled_rounded
+                            : Icons.access_time_rounded,
+                        color: colors.onSurface,
+                      ),
+                      label: Text(chipText),
+                      selected: alarmList[i].active,
+                      onSelected: (selected) {
+                        setState(() {
+                          alarmList[i].active = selected;
+                          alarmList[i].save();
+                        });
                       },
-                      itemBuilder: (BuildContext context) => <PopupMenuEntry<MedicationWidgetMenuOption>>[
-                        //TODO: allow share
-                        /*const PopupMenuItem<MedicationWidgetMenuOption>(
-                          value: MedicationWidgetMenuOption.share,
-                          child: Text('Exportar'),
-                        ),*/
-                        const PopupMenuItem<MedicationWidgetMenuOption>(
-                          value: MedicationWidgetMenuOption.edit,
-                          child: Text('Editar'),
-                        ),
-                        const PopupMenuItem<MedicationWidgetMenuOption>(
-                          value: MedicationWidgetMenuOption.delete,
-                          child: Text('Excluir'),
-                        ),
-                      ],
-                    ),
+                      showCheckmark: false,
+                      elevation: 2,
+                    );
+                  },
+                  separatorBuilder: (context, i) {
+                    return const SizedBox(width: 4);
+                  },
+                ),
+              )
+                  : SizedBox(
+                height: 36,
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.circular(12), // <-- Radius
+                              ),
+                              minimumSize: const Size(
+                                  double.infinity,
+                                  double
+                                      .infinity) // put the width and height you want
+                          ),
+                          onPressed: () {initialDosagePicker(context);},
+                          child: const Text('Iniciar Medicação'),
+                        )),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                    "${widget.model.patientName}, tomar ${widget.model.doseAmount} ${DoseUnitController.asText(PluralController.fromAmount(widget.model.doseAmount), widget.model.doseUnit)} a cada ${widget.model.interval} ${TimeUnitController.asText(PluralController.fromAmount(widget.model.interval), widget.model.intervalUnit)}",
-                    style: Theme.of(context).textTheme.bodyMedium
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 48,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    shrinkWrap: true,
-                    primary: true,
-                    itemCount: alarmList.length,
-                    itemBuilder: (context, i) {
-                      String chipText = DateFormat('HH:mm').format(alarmList[i].timestamp);
-                      int dayDiff = alarmList[i].timestamp.difference(DateTime.now()).inDays;
-                      if(dayDiff > 0){chipText+="+$dayDiff";}
+              ),
+              widget.model.comments == "" ? Container() : const SizedBox(height: 8),
+              widget.model.comments == ""
+                  ? Container()
+                  : Text(widget.model.comments,
+                  style: Theme.of(context).textTheme.bodyMedium),
+            ],
+          )
+        )
+      ],
+    ));
+  }
 
-                      return FilterChip(
-                        avatar: Icon(alarmList[i].active ? Icons.access_time_filled_rounded : Icons.access_time_rounded, color: colors.onSurface,),
-                        label: Text(chipText),
-                        selected: alarmList[i].active,
-                        onSelected: (selected) {
-                          setState(() {
-                            alarmList[i].active = selected;
-                            alarmList[i].save();
-                          });
-                        },
-                        showCheckmark: false,
-                        elevation: 2,
-                      );
-                    },
-                    separatorBuilder: (context, i) {
-                      return const SizedBox(width: 4);
-                    },
-                  ),
-                ),
+  List<PopupMenuEntry<MedicationWidgetMenuOption>> getMenuList(context){
+    List<PopupMenuEntry<MedicationWidgetMenuOption>> list = [
+      const PopupMenuItem<MedicationWidgetMenuOption>(
+        value: MedicationWidgetMenuOption.edit,
+        child: Text('Editar'),
+      ),
+      const PopupMenuItem<MedicationWidgetMenuOption>(
+        value: MedicationWidgetMenuOption.delete,
+        child: Text('Excluir'),
+      ),
+    ];
 
-                widget.model.comments == "" ? Container() : const SizedBox(height: 8),
-                widget.model.comments == "" ? Container() : Text(widget.model.comments, style: Theme.of(context).textTheme.bodyMedium),
-              ],
-            )
-      )
-    );
+    if (widget.model.initialDosage != null){
+      list.add(
+        const PopupMenuItem<MedicationWidgetMenuOption>(
+          value: MedicationWidgetMenuOption.resetAlarms,
+          child: Text('Redefinir alarmes'),
+        ),
+      );
+    }
+
+    return list;
+  }
+
+
+  Future initialDosagePicker(BuildContext context) async {
+    var time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    if (time != null) {
+      var now = TimeOfDay.now();
+      bool nextDay = (time.hour < now.hour || time.hour == now.hour && time.minute < now.minute);
+      var nowDate = DateTime.now();
+      setState(() {
+        widget.model.initialDosage = DateTime(nowDate.year, nowDate.month, nowDate.day, time.hour, time.minute);
+        if (nextDay) widget.model.initialDosage?.add(const Duration(days: 1));
+        widget.model.save();
+        widget.model.buildAlarms();
+      });
+    }
   }
 }
-
 
 /*
 
