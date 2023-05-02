@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:medtrack/pages/settings.dart';
 import 'pages/home.dart';
 import 'theme.dart';
 
@@ -9,6 +8,7 @@ void main() async {
   await Hive.openBox('prescription');
   await Hive.openBox('medication');
   await Hive.openBox('alarm');
+  await Hive.openBox('settings');
   runApp(const MyApp());
 }
 

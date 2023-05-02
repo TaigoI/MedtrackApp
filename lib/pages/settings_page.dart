@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
+import '../models/settings_storage.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:medtrack/utils.dart';
 
@@ -16,7 +18,7 @@ class _SettingsScreenState extends State<Settings> {
   bool _switchNecessaryValue = false;
   bool _switchUnnecessaryValue = false;
   bool _switchUnnecessaryOpValue = false;
-  String? _selectedRadioTile = 'One';
+  String? _selectedRadioTile = 'Mozart';
 
   @override
   Widget build(BuildContext context) {

@@ -4,7 +4,8 @@ import '../models/prescription.dart';
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
 import '../widgets/bottom_bar.dart';
-import 'settings.dart';
+import 'settings_page.dart';
+import 'read_json.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -102,7 +103,12 @@ class _HomeState extends State<Home> {
             children: [
               IconButton(
                 icon: Icon(Icons.qr_code),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => QRCodeScanner()),
+                  );
+                },
               ),
               IconButton(
                 icon: Icon(Icons.home),
