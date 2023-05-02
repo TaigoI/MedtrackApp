@@ -75,7 +75,25 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
     if (barcodeScanRes != null) {
       dynamic jsonResult = jsonDecode(barcodeScanRes);
 
-      if (jsonResult is Map<String, dynamic>) {
+      var medicationsJson = jsonResult['medications'];
+
+      medicationsJson.forEach((m) => {
+          m['doctorName'] = jsonResult['doctorName'];
+          m['doctorRegistration'] = jsonResult['doctorRegistration'];
+          m['patientName'] = jsonResult['patientName'];
+          m['active'] = true;
+
+          var medication = MedicationTeste.fromJson(m);
+          medication.save();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Receita lida com sucesso'),
+      ));
+
+      /*if (medicationsJson is Map<String, dynamic>) {
+
+
         String key = jsonResult['key'];
         bool active = jsonResult['active'];
         String patientName = jsonResult['patientName'];
@@ -89,10 +107,8 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
         String comments = jsonResult['comments'];
         print('key: $key, active: $active, patientName: $patientName');
 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Receita lida com sucesso'),
-        ));
-      }
+
+      }*/
     }
   }
 

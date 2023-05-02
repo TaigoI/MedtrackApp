@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
-import '../models/settings_storage.dart';
+import '../models/settings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hive/hive.dart';
@@ -29,7 +29,7 @@ class _SettingsScreenState extends State<Settings> {
       body: SettingsList(
         sections: [
           SettingsSection(
-            title: Text('Geral'),
+            title: Text('GERAL'),
             tiles: [
               SettingsTile(
                 title: Text('Toque do alarme'),
@@ -97,7 +97,7 @@ class _SettingsScreenState extends State<Settings> {
             ],
           ),
           SettingsSection(
-            title: Text('Notificações necessárias'),
+            title: Text('NOTIFICAÇÕES NECESSÁRIAS'),
             tiles: [
               SettingsTile.switchTile(
                 title: Text('Desejo receber notificações quando der a hora de tomar meus remédios.'),
@@ -111,7 +111,7 @@ class _SettingsScreenState extends State<Settings> {
             ]
           ),
           SettingsSection(
-            title: Text('Notificações opcionais'),
+            title: Text('NOTIFICAÇÕES OPCIONAIS'),
             tiles: [
               SettingsTile.switchTile(
                 title: Text('Desejo que o app solicite que eu faça alguma tarefa para comprovar que tomei o remédio.'),
