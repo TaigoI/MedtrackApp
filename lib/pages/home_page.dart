@@ -16,6 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _medicationBox = Hive.box('medication');
+  final QRCodeScanner _qrCodeScanner = QRCodeScanner();
 
   _clearStorage() async {
     Hive.box('medication').clear();
@@ -57,11 +58,8 @@ class _HomePageState extends State<HomePage> {
             children: [
               IconButton(
                 icon: Icon(Icons.qr_code),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => QRCodeScanner()),
-                  );
+                onPressed: () async {
+                  await _qrCodeScanner.scanQRCode();
                 },
               ),
               IconButton(
@@ -103,5 +101,4 @@ class _HomePageState extends State<HomePage> {
         )
     );
   }
-
 }
