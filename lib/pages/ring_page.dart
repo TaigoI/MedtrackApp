@@ -3,6 +3,8 @@ import 'package:alarm/alarm.dart';
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/models/medication.dart';
 import 'package:hive/hive.dart';
+import 'package:medtrack/enums/dose_unit.dart';
+import 'package:medtrack/enums/plural.dart';
 
 const snoozeTime = 20;
 
@@ -66,7 +68,7 @@ class _RingScreenState extends State<RingScreen> {
           setState(() => _checklist[patientName]![idx] = value!);
         },
         title: Text(
-          "${med.medicationName}, tomar ${med.doseAmount}${med.doseUnit}",
+          "${med.medicationName}, tomar ${med.doseAmount} ${DoseUnitController.asText(PluralController.fromAmount(med.doseAmount), med.doseUnit)}",
         ),
         secondary: const Icon(Icons.medication_outlined),
       );
