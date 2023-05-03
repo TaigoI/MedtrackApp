@@ -4,6 +4,8 @@ import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/models/medication.dart';
 import 'package:hive/hive.dart';
 
+const snoozeTime = 20;
+
 class RingScreen extends StatefulWidget {
   final AlarmSettings alarmSettings;
   final Box<dynamic> medicationBox;
@@ -21,7 +23,7 @@ class RingScreen extends StatefulWidget {
 
 class _RingScreenState extends State<RingScreen> {
   final Map<String, List<bool>> _checklist = {};
-  final bool confirmation = true;
+  final bool confirmation = false;
   final String confirmationKey = "teste";
 
   
@@ -164,13 +166,13 @@ class _RingScreenState extends State<RingScreen> {
                         builder: (BuildContext context) => AlertDialog(
                               title: const Text("Quer mesmo adiar?"),
                               content: const Text(
-                                  "O alarme voltará a tocar em 3 minutos."),
+                                  "O alarme voltará a tocar em $snoozeTime minutos."),
                               actions: <Widget>[
                                 TextButton(
                                     onPressed: () => Navigator.pop(context),
                                     child: const Text("Cancelar")),
                                 TextButton(
-                                    onPressed: () {
+                                    onPressed: () async {
                                       final now = DateTime.now();
                                       Alarm.set(
                                               alarmSettings:
@@ -184,7 +186,7 @@ class _RingScreenState extends State<RingScreen> {
                                                               0,
                                                               0)
                                                           .add(const Duration(
-                                                              minutes: 3))))
+                                                              minutes: snoozeTime))),)
                                           .then((_) => Navigator.pushNamed(
                                               context, '/'));
                                     },

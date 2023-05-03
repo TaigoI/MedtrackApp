@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:medtrack/models/medication.dart';
-import 'package:medtrack/models/prescription.dart';
 import 'package:alarm/alarm.dart';
 import 'package:hive/hive.dart';
 import 'package:medtrack/main.dart';
@@ -28,13 +27,14 @@ class AlarmItem {
 
   factory AlarmItem.fromMap(Map<String, dynamic> map) {
     return AlarmItem.withActive(
-        medicationKey: map['medicationKey'],
-        active: map['active'] 
-    );
+        medicationKey: map['medicationKey'], active: map['active']);
   }
 
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> map = {'medicationKey': medicationKey, 'active': active};
+    Map<String, dynamic> map = {
+      'medicationKey': medicationKey,
+      'active': active
+    };
     return map;
   }
 
@@ -88,14 +88,14 @@ class AppAlarm {
     return AppAlarm.withItems(
         key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
         timeStamp: DateTime.parse(map['timeStamp'].toString()),
-        items: Map<String, dynamic>.from(
-          (map['items'] as Map).map((name, list) => MapEntry(name,
-          list.map((i) => AlarmItem.fromMap(Map<String, dynamic>.from(i as Map)))))
-        ), // vsf
+        items: Map<String, dynamic>.from((map['items'] as Map).map(
+            (name, list) => MapEntry(
+                name,
+                list.map((i) => AlarmItem.fromMap(
+                    Map<String, dynamic>.from(i as Map)))))), // vsf
         audioPath: map['audioPath'],
         alarmId: map['alarmId'],
-        active: map['active'] == 'true' ? true : false
-      );
+        active: map['active'] == 'true' ? true : false);
   }
 
   toMap() {
@@ -165,7 +165,8 @@ class AppAlarm {
   }
 
   Future<bool> removeItem(String patientName, String medicationKey) async {
-    items.removeWhere((key, value) => key == patientName && value.any((e) => e.getKey() == medicationKey));
+    items.removeWhere((key, value) =>
+        key == patientName && value.any((e) => e.getKey() == medicationKey));
 
     if (items.isEmpty) {
       await Alarm.stop(alarmId);
@@ -178,47 +179,45 @@ class AppAlarm {
   }
 
   Future<void> setItemInactive(String patientName, String medicationKey) async {
-    items[patientName].firstWhere((element) => element.medicationKey == medicationKey).setActive(false);
+    items[patientName]
+        .firstWhere((element) => element.medicationKey == medicationKey)
+        .setActive(false);
 
     if (!shouldRing()) {
+      print("should not ring");
       active = false;
-      await Alarm.stop(alarmId); 
+      await Alarm.stop(alarmId);
     }
     await save();
   }
 
-  void setItemActive(String patientName, String medicationKey) async {
-    items[patientName].firstWhere((element) => element.medicationKey == medicationKey).setActive(true);
-    
+  Future<void> setItemActive(String patientName, String medicationKey) async {
+    items[patientName]
+        .firstWhere((element) => element.medicationKey == medicationKey)
+        .setActive(true);
+
     if (!active) {
       active = true;
-      await setAlarmIfAlreadyNot(alarmId); 
+      await setAlarmIfAlreadyNot(alarmId);
     }
     await save();
   }
 }
 
-Future<List<AlarmStamp>> alarmFromMedication(Medication medication) async {
-  String patientName =
-      Prescription.fromStorage(medication.prescriptionKey).patientName;
+Future<List<AlarmStamp>> alarmFromMedication(Medication medication, int intervalInMinutes) async {
 
-  DateTime endDate = medication.initialDosage
-      .add(Duration(minutes: (medication.occurrences * medication.interval)));
-
-
-  DateTime currentStamp = medication.initialDosage;
+  DateTime currentStamp = medication.initialDosage!;
   bool timeStampTaken;
 
   List<AlarmStamp> times = [];
 
-  // while (currentStamp.isBefore(endDate)) {
-    for (int i = 0; i < 1; i++) {
+  for (int i = 0; i < medication.occurrences; i++) {
     times.add(AlarmStamp(timeStamp: currentStamp));
     timeStampTaken = false;
 
     for (AppAlarm alarm in alarmsList) {
       if (alarm.timeStamp.compareTo(currentStamp) == 0) {
-        alarm.addItem(medication.key, patientName);
+        alarm.addItem(medication.key, medication.patientName);
         timeStampTaken = true;
         break;
       }
@@ -230,15 +229,14 @@ Future<List<AlarmStamp>> alarmFromMedication(Medication medication) async {
           audioPath: 'sounds/mozart.mp3',
           timeStamp: currentStamp,
           medicationKey: medication.key,
-          patientName: patientName));
+          patientName: medication.patientName));
     }
 
-    currentStamp = currentStamp.add(Duration(minutes: medication.interval));
+    currentStamp = currentStamp.add(Duration(minutes: intervalInMinutes));
   }
 
   print('\n\nAlarmes: ');
   printAlarms();
-
   return times;
 }
 
@@ -268,12 +266,16 @@ List<AppAlarm> getAlarmList() {
   return list;
 }
 
-void setItemInactive(DateTime timeStamp, String patientName, String medicationKey) async {
-  await alarmsList.firstWhere((element) => element.timeStamp == timeStamp)
-    .setItemInactive(patientName, medicationKey);
+Future<void> setItemInactive(
+    DateTime timeStamp, String patientName, String medicationKey) async {
+  await alarmsList
+      .firstWhere((element) => element.timeStamp == timeStamp)
+      .setItemInactive(patientName, medicationKey);
 }
 
-void setItemActive(DateTime timeStamp, String patientName, String medicationKey) async {
-  alarmsList.firstWhere((element) => element.timeStamp == timeStamp)
-    .setItemActive(patientName, medicationKey);
+Future<void> setItemActive(
+    DateTime timeStamp, String patientName, String medicationKey) async {
+  await alarmsList
+      .firstWhere((element) => element.timeStamp == timeStamp)
+      .setItemActive(patientName, medicationKey);
 }

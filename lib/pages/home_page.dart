@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:medtrack/services/generate_qr_code.dart';
-import '../models/prescription.dart';
+import 'package:medtrack/pages/medication_page.dart';
+
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
 
@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:alarm/alarm.dart';
 
 import 'package:medtrack/services/alarms_service.dart';
-import 'package:medtrack/pages/ring.dart';
+import 'package:medtrack/pages/ring_page.dart';
 
 DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
 
@@ -23,60 +23,20 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final _medicationBox = Hive.box('medication');
-  final _alarmBox = Hive.box('alarm');
 
   late List<AlarmSettings> alarms;
   static StreamSubscription? subscription;
 
-  _addItem(String title) async {
-    var prescriptionModel = Prescription(
-      key: UniqueKey().toString(),
-      doctorName: "Médico do Taígo",
-      doctorRegistration: "0000 CRM-AL",
-      patientName: "Taígo"
-    );
-    prescriptionModel.persist();
-
-    var medication = Medication(
-      key: UniqueKey().toString(),
-      prescriptionKey: prescriptionModel.key,
-      medicationName: "Paracetamol",
-      medicationDosageAmount: 250,
-      medicationDosageUnit: "MG/ML",
-      doseAmount: 5,
-      doseUnit: "ml",
-      interval: 360,
-      occurrences: 10,
-      comments: "Você precisa tomar seu remédio em jejum.",
-      initialDosage: 
-      //DateTime(
-      //   today.year,
-      //   today.month,
-      //   today.day,
-      //   21,
-      //   0,
-      //   0,
-      //   0,
-      //   )
-      today.add(const Duration(seconds: 10))
-    );
-    await medication.updateAlarmes();
-    medication.save();
-  }
-
   _clearStorage() async {
     await Hive.box('medication').clear();
-    await Hive.box('prescription').clear();
-    await Hive.box('alarms').clear();
+    await Hive.box('alarm').clear();
     await stopAllAlarms();
   }
 
   @override
   void initState() {
     super.initState();
-    _clearStorage();
     loadAlarms();
-    stopDeprecatedAlarms();
     subscription ??= Alarm.ringStream.stream
         .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
   }
@@ -118,22 +78,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.menu_rounded),
-            onPressed: () {
-              Navigator.pushNamed(context, '/scan/confirm');
-            },
-          ),
           title: Image.asset('assets/images/logo.png', height: 48),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.account_circle_rounded),
-              onPressed: () async {
-                String code = await generateQrCodeAndShareIt();
-                print(code);
-              },
-            )
-          ],
           centerTitle: true,
           elevation: 4,
         ),
@@ -158,33 +103,26 @@ class _HomeState extends State<Home> {
             }
           },
         ),
-        floatingActionButton: Container(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: <Widget>[
-                  FloatingActionButton(
-                    onPressed: () {
-                      _clearStorage();
-                    },
-                    child: const Icon(Icons.qr_code),
-                  ),
-                  const SizedBox(height: 10),
-                  FloatingActionButton(
-                    onPressed: () {
-                      _addItem('Sample Prescription');
-                    },
-                    child: const Icon(Icons.add),
-                  ),
-                  const SizedBox(height: 10),
-                  FloatingActionButton(
-                    onPressed: () {
-                      _clearStorage();
-                      clearAllAlarms();
-                    },
-                    child: const Icon(Icons.delete),
-                  ),
-              ]
-          )
+        floatingActionButton: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+                FloatingActionButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MedicationPage(medication: Medication.empty(), isNew: true,)),
+                    );
+                  },
+                  child: const Icon(Icons.add),
+                ),
+                const SizedBox(height: 10),
+                FloatingActionButton(
+                  onPressed: () async {
+                    await _clearStorage();
+                  },
+                  child: const Icon(Icons.delete),
+                ),
+            ]
         )
     );
   }

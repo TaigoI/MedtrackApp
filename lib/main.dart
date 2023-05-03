@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:medtrack/pages/confirm_qr_code.dart';
-import 'pages/home.dart';
+import 'package:medtrack/pages/confirm_qr_code_page.dart';
+import 'pages/home_page.dart';
 import 'theme.dart';
 import 'package:alarm/alarm.dart';
 
@@ -13,7 +13,6 @@ Future<void> main() async {
   final now = DateTime.now();
 
   await Hive.initFlutter();
-  await Hive.openBox('prescription');
   await Hive.openBox('medication');
   await Hive.openBox('alarm');
 
@@ -31,6 +30,11 @@ Future<void> main() async {
   );
 
   runApp(const MyApp());
+}
+
+extension StringCasingExtension on String {
+  String toCapitalized() => length > 0 ?'${this[0].toUpperCase()}${substring(1).toLowerCase()}':'';
+  String toTitleCase() => replaceAll(RegExp(' +'), ' ').split(' ').map((str) => str.toCapitalized()).join(' ');
 }
 
 class MyApp extends StatelessWidget {
