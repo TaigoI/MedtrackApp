@@ -170,8 +170,6 @@ class Medication {
   }
 
   Map<String, dynamic> toMap() {
-    print(List.from(timeStamps.map((item) => item.toMap())));
-
     return {
       'key': key,
       'active': active,

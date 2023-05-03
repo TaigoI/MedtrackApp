@@ -30,6 +30,7 @@ class _HomeState extends State<Home> {
   _clearStorage() async {
     await Hive.box('medication').clear();
     await Hive.box('alarm').clear();
+    alarmsList.clear();
     await stopAllAlarms();
   }
 

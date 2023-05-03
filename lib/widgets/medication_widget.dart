@@ -133,24 +133,25 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                       ),
                       label: Text(chipText),
                       selected: widget.model.timeStamps[i].active,
-                      onSelected: (selected) {
-                        setState(() async {
-                            widget.model.timeStamps[i].active = selected;
-                                                        
-                            if (!widget.model.timeStamps[i].active) {
-                              setItemInactive(
-                                widget.model.timeStamps[i].timeStamp, 
-                                widget.model.patientName, 
-                                widget.model.key
-                              );
-                            }
-                            else {
-                              setItemActive(
-                                widget.model.timeStamps[i].timeStamp, 
-                                widget.model.patientName, 
-                                widget.model.key);
-                            }
-                          });
+                      onSelected: (selected) async {
+                        print(widget.model.patientName);
+                        setState(() =>
+                            widget.model.timeStamps[i].active = selected
+                        );
+                        
+                        if (!widget.model.timeStamps[i].active) {
+                            await setItemInactive(
+                              widget.model.timeStamps[i].timeStamp, 
+                              widget.model.patientName, 
+                              widget.model.key
+                            );
+                          }
+                          else {
+                            await setItemActive(
+                              widget.model.timeStamps[i].timeStamp, 
+                              widget.model.patientName, 
+                              widget.model.key);
+                          }
                       },
                       showCheckmark: false,
                       elevation: 2,
@@ -223,16 +224,25 @@ class _MedicationWidgetState extends State<MedicationWidget> {
 
   Future initialDosagePicker(BuildContext context) async {
     var time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    
     if (time != null) {
       var now = TimeOfDay.now();
+      
       bool nextDay = (time.hour < now.hour || time.hour == now.hour && time.minute < now.minute);
       var nowDate = DateTime.now();
-      setState(() async {
-        widget.model.initialDosage = DateTime(nowDate.year, nowDate.month, nowDate.day, time.hour, time.minute);
-        if (nextDay) widget.model.initialDosage?.add(const Duration(days: 1));
-        await widget.model.buildAlarms();
-        widget.model.save();
-      });
+      
+      setState(() =>
+        widget.model.initialDosage = DateTime(
+          nowDate.year, 
+          nowDate.month, 
+          nowDate.day, 
+          time.hour, 
+          time.minute, 0, 0, 0)
+      );
+
+      if (nextDay) widget.model.initialDosage?.add(const Duration(days: 1));
+      await widget.model.buildAlarms();
+      await widget.model.save();
     }
   }
 }

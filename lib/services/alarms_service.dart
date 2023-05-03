@@ -13,8 +13,12 @@ class AlarmItem {
   AlarmItem({required this.medicationKey});
   AlarmItem.withActive({required this.medicationKey, required this.active});
 
-  void setActive(bool active) {
-    active = active;
+  void setToActive() {
+    active = true;
+  }
+
+  void setToInactive() {
+    active = false;
   }
 
   bool isActive() {
@@ -49,7 +53,7 @@ final _alarmBox = Hive.box('alarm');
 class AppAlarm {
   String key;
   DateTime timeStamp; // horário em que o alarme soará
-  late Map<String, dynamic> items; // itens a serem tomados neste horário
+  Map<String, dynamic> items = {}; // itens a serem tomados neste horário | dynamic: List<AlarmItem>
   String audioPath; // vem das configurações
 
   late int alarmId; //id para pegar do plugin
@@ -61,7 +65,6 @@ class AppAlarm {
       required this.audioPath,
       required String medicationKey,
       required String patientName}) {
-    items = {};
     items[patientName] = [AlarmItem(medicationKey: medicationKey)];
     setAlarm();
   }
@@ -91,14 +94,16 @@ class AppAlarm {
         items: Map<String, dynamic>.from((map['items'] as Map).map(
             (name, list) => MapEntry(
                 name,
-                list.map((i) => AlarmItem.fromMap(
-                    Map<String, dynamic>.from(i as Map)))))), // vsf
+                List.from(list.map((i) => AlarmItem.fromMap(
+                      Map<String, dynamic>.from(i as Map)
+                    )
+                    ))))), // vsf
         audioPath: map['audioPath'],
         alarmId: map['alarmId'],
         active: map['active'] == 'true' ? true : false);
   }
 
-  toMap() {
+  Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {
       'key': key,
       'timeStamp': timeStamp,
@@ -153,15 +158,14 @@ class AppAlarm {
   }
 
   bool shouldRing() {
-    bool flag = true;
-    items.forEach((key, value) {
-      if (value.every((val) => val.isActive() == false)) {
-        flag = false;
-      } else {
-        flag = true;
-      }
-    });
-    return flag;
+    if (
+      items.values
+      .every((lista) => lista.every((item) => item.active == false))
+    ) {
+      return false;
+    } else {
+      return true;
+    }
   }
 
   Future<bool> removeItem(String patientName, String medicationKey) async {
@@ -179,12 +183,16 @@ class AppAlarm {
   }
 
   Future<void> setItemInactive(String patientName, String medicationKey) async {
-    items[patientName]
-        .firstWhere((element) => element.medicationKey == medicationKey)
-        .setActive(false);
+    await save();
+    int found = 0;
+    for (int i = 0; i < items[patientName].length; i++) {
+      if (items[patientName][i].medicationKey == medicationKey) {
+        items[patientName][i].setToInactive();
+        found = i;
+      }
+    }
 
     if (!shouldRing()) {
-      print("should not ring");
       active = false;
       await Alarm.stop(alarmId);
     }
@@ -194,7 +202,7 @@ class AppAlarm {
   Future<void> setItemActive(String patientName, String medicationKey) async {
     items[patientName]
         .firstWhere((element) => element.medicationKey == medicationKey)
-        .setActive(true);
+        .setToActive();
 
     if (!active) {
       active = true;
@@ -205,7 +213,6 @@ class AppAlarm {
 }
 
 Future<List<AlarmStamp>> alarmFromMedication(Medication medication, int intervalInMinutes) async {
-
   DateTime currentStamp = medication.initialDosage!;
   bool timeStampTaken;
 
@@ -268,6 +275,8 @@ List<AppAlarm> getAlarmList() {
 
 Future<void> setItemInactive(
     DateTime timeStamp, String patientName, String medicationKey) async {
+  print('will set inactive');
+  printAllTimeStamps();
   await alarmsList
       .firstWhere((element) => element.timeStamp == timeStamp)
       .setItemInactive(patientName, medicationKey);
@@ -278,4 +287,10 @@ Future<void> setItemActive(
   await alarmsList
       .firstWhere((element) => element.timeStamp == timeStamp)
       .setItemActive(patientName, medicationKey);
+}
+
+void printAllTimeStamps() {
+  for (var item in alarmsList) {
+    print("${item.timeStamp}: ${item.items.keys}");
+  }
 }

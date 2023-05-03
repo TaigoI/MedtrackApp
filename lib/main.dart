@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/pages/confirm_qr_code_page.dart';
+import 'package:medtrack/services/alarms_service.dart';
 import 'pages/home_page.dart';
 import 'theme.dart';
 import 'package:alarm/alarm.dart';
@@ -28,6 +29,9 @@ Future<void> main() async {
     'Seus alarmes podem não tocar', 
     'Você fechou o app. Por favor, abra-o novamente para que os alarmes toquem.'
   );
+
+  alarmsList = getAlarmList();
+  print("at main, alarmsList: $alarmsList");
 
   runApp(const MyApp());
 }
