@@ -191,7 +191,6 @@ class _MedicationPageState extends State<MedicationPage> {
                             ),
                             onPressed: () {
                               // Validate returns true if the form is valid, or false otherwise.
-                              
                               widget.medication.save();
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(

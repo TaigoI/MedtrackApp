@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/pages/confirm_qr_code_page.dart';
 import 'package:medtrack/services/alarms_service.dart';
-import 'pages/home_page.dart';
-import 'theme.dart';
+import 'package:medtrack/pages/home_page.dart';
+import 'package:medtrack/theme.dart';
 import 'package:alarm/alarm.dart';
 
 const String chave = "medtrack qrCode";

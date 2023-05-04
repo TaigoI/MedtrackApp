@@ -5,7 +5,7 @@ import 'package:medtrack/enums/plural.dart';
 import 'package:medtrack/enums/time_unit.dart';
 import 'package:medtrack/pages/medication_page.dart';
 
-import '../models/medication.dart';
+import 'package:medtrack/models/medication.dart';
 import 'package:medtrack/services/alarms_service.dart';
 
 class MedicationWidget extends StatefulWidget {
@@ -140,18 +140,19 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                         );
                         
                         if (!widget.model.timeStamps[i].active) {
-                            await setItemInactive(
-                              widget.model.timeStamps[i].timeStamp, 
-                              widget.model.patientName, 
-                              widget.model.key
-                            );
-                          }
-                          else {
-                            await setItemActive(
-                              widget.model.timeStamps[i].timeStamp, 
-                              widget.model.patientName, 
-                              widget.model.key);
-                          }
+                          await setItemInactive(
+                            widget.model.timeStamps[i].timeStamp, 
+                            widget.model.patientName, 
+                            widget.model.key
+                          );
+                        }
+                        else {
+                          await setItemActive(
+                            widget.model.timeStamps[i].timeStamp, 
+                            widget.model.patientName, 
+                            widget.model.key);
+                        }
+                        await widget.model.save();
                       },
                       showCheckmark: false,
                       elevation: 2,
