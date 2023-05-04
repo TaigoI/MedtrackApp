@@ -3,10 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:medtrack/enums/dose_unit.dart';
 import 'package:medtrack/enums/plural.dart';
 import 'package:medtrack/enums/time_unit.dart';
-import 'package:medtrack/models/alarm.dart';
 import 'package:medtrack/pages/medication_page.dart';
 
-import '../models/medication.dart';
+import 'package:medtrack/models/medication.dart';
+import 'package:medtrack/services/alarms_service.dart';
 
 class MedicationWidget extends StatefulWidget {
   final Medication model;
@@ -42,7 +42,6 @@ class _MedicationWidgetState extends State<MedicationWidget> {
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
-    List<Alarm> alarmList = widget.model.getAlarmList();
 
     return Card(
         child: Column(
@@ -112,12 +111,13 @@ class _MedicationWidgetState extends State<MedicationWidget> {
                   scrollDirection: Axis.horizontal,
                   shrinkWrap: true,
                   primary: true,
-                  itemCount: alarmList.length,
+                  itemCount: widget.model.timeStamps.length,
                   itemBuilder: (context, i) {
-                    String chipText =
-                    DateFormat('HH:mm').format(alarmList[i].timestamp);
-                    int dayDiff = alarmList[i]
-                        .timestamp
+                    String chipText = 
+                    DateFormat('HH:mm').format(widget.model.timeStamps[i].timeStamp);
+                    
+                    int dayDiff = widget.model.timeStamps[i]
+                        .timeStamp
                         .difference(DateTime.now())
                         .inDays;
                     if (dayDiff > 0) {
@@ -126,18 +126,33 @@ class _MedicationWidgetState extends State<MedicationWidget> {
 
                     return FilterChip(
                       avatar: Icon(
-                        alarmList[i].active
+                        widget.model.timeStamps[i].active
                             ? Icons.access_time_filled_rounded
                             : Icons.access_time_rounded,
                         color: colors.onSurface,
                       ),
                       label: Text(chipText),
-                      selected: alarmList[i].active,
-                      onSelected: (selected) {
-                        setState(() {
-                          alarmList[i].active = selected;
-                          alarmList[i].save();
-                        });
+                      selected: widget.model.timeStamps[i].active,
+                      onSelected: (selected) async {
+                        print(widget.model.patientName);
+                        setState(() =>
+                            widget.model.timeStamps[i].active = selected
+                        );
+                        
+                        if (!widget.model.timeStamps[i].active) {
+                          await setItemInactive(
+                            widget.model.timeStamps[i].timeStamp, 
+                            widget.model.patientName, 
+                            widget.model.key
+                          );
+                        }
+                        else {
+                          await setItemActive(
+                            widget.model.timeStamps[i].timeStamp, 
+                            widget.model.patientName, 
+                            widget.model.key);
+                        }
+                        await widget.model.save();
                       },
                       showCheckmark: false,
                       elevation: 2,
@@ -210,22 +225,25 @@ class _MedicationWidgetState extends State<MedicationWidget> {
 
   Future initialDosagePicker(BuildContext context) async {
     var time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    
     if (time != null) {
       var now = TimeOfDay.now();
+      
       bool nextDay = (time.hour < now.hour || time.hour == now.hour && time.minute < now.minute);
       var nowDate = DateTime.now();
-      setState(() {
-        widget.model.initialDosage = DateTime(nowDate.year, nowDate.month, nowDate.day, time.hour, time.minute);
-        if (nextDay) widget.model.initialDosage?.add(const Duration(days: 1));
-        widget.model.save();
-        widget.model.buildAlarms();
-      });
+      
+      setState(() =>
+        widget.model.initialDosage = DateTime(
+          nowDate.year, 
+          nowDate.month, 
+          nowDate.day, 
+          time.hour, 
+          time.minute, 0, 0, 0)
+      );
+
+      if (nextDay) widget.model.initialDosage?.add(const Duration(days: 1));
+      await widget.model.buildAlarms();
+      await widget.model.save();
     }
   }
 }
-
-/*
-
-
-
-*/

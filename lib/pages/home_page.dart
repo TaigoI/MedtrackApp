@@ -5,20 +5,75 @@ import 'package:medtrack/pages/medication_page.dart';
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+import 'dart:async';
+import 'package:alarm/alarm.dart';
+
+import 'package:medtrack/services/alarms_service.dart';
+import 'package:medtrack/pages/ring_page.dart';
+
+DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
+
+DateTime today = DateTime.now();
+class Home extends StatefulWidget {
+  const Home({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<Home> createState() => _HomeState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomeState extends State<Home> {
   final _medicationBox = Hive.box('medication');
 
+  late List<AlarmSettings> alarms;
+  static StreamSubscription? subscription;
+
   _clearStorage() async {
-    Hive.box('medication').clear();
-    Hive.box('prescription').clear();
+    await Hive.box('medication').clear();
+    await Hive.box('alarm').clear();
+    alarmsList.clear();
+    await stopAllAlarms();
   }
+
+  @override
+  void initState() {
+    super.initState();
+    loadAlarms();
+    subscription ??= Alarm.ringStream.stream
+        .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
+  }
+
+  void loadAlarms() {
+    setState(() {
+      alarms = Alarm.getAlarms();
+      alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
+    });
+  }
+
+  Future<void> stopDeprecatedAlarms() async {
+    final now = DateTime.now();
+
+    for (AlarmSettings alarm in Alarm.getAlarms()) {
+      if (alarm.dateTime.isBefore(now)) {
+        await Alarm.stop(alarm.id);
+      }
+    }
+  }
+
+
+  Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => RingScreen(alarmSettings: alarmSettings, medicationBox: _medicationBox,)));
+    loadAlarms();
+  }
+
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -63,8 +118,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 10),
                 FloatingActionButton(
-                  onPressed: () {
-                    _clearStorage();
+                  onPressed: () async {
+                    await _clearStorage();
                   },
                   child: const Icon(Icons.delete),
                 ),
@@ -72,5 +127,4 @@ class _HomePageState extends State<HomePage> {
         )
     );
   }
-
 }
