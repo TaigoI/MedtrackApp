@@ -12,7 +12,7 @@ class RingScreen extends StatefulWidget {
   final AlarmSettings alarmSettings;
   final Box<dynamic> medicationBox;
   
-  late AppAlarm appAlarm;
+  late final AppAlarm appAlarm;
 
   RingScreen({super.key, required this.alarmSettings, required this.medicationBox}) {
     appAlarm = alarmsList
