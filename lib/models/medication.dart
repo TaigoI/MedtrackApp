@@ -31,7 +31,6 @@ class AlarmStamp {
 
 class Medication {
   static final _box = Hive.box('medication');
-  static final _alarmBox = Hive.box('alarm');
 
   String key;
   bool active;
@@ -42,6 +41,9 @@ class Medication {
   String doctorRegistration;
 
   String medicationName; //nome do remédio. "Paracetamol"
+  int? medicationId;
+  String presentationName;
+  int? presentationId;
   String medicationDosage; //posologia do remédio. "500 MG/ML"
 
   int doseAmount; //quantidade do remédio que devem ser consumidas por vez. "5"
@@ -65,6 +67,9 @@ class Medication {
     required this.doctorName,
     required this.doctorRegistration,
     required this.medicationName,
+    this.medicationId,
+    required this.presentationName,
+    this.presentationId,
     required this.medicationDosage,
     required this.doseAmount,
     required this.doseUnit,
@@ -83,6 +88,9 @@ class Medication {
     required this.doctorName,
     required this.doctorRegistration,
     required this.medicationName,
+    this.medicationId,
+    required this.presentationName,
+    this.presentationId,
     required this.medicationDosage,
     required this.doseAmount,
     required this.doseUnit,
@@ -135,6 +143,7 @@ class Medication {
         doctorName: "",
         doctorRegistration: "",
         medicationName: "",
+        presentationName: "",
         medicationDosage: "",
         doseAmount: 1,
         doseUnit: DoseUnitOption.pill,
@@ -156,6 +165,9 @@ class Medication {
       doctorName: map['doctorName'].toString(),
       doctorRegistration: map['doctorRegistration'].toString(),
       medicationName: map['medicationName'].toString(),
+      medicationId: map.containsKey('medicationId') && map['medicationId'] != 'null' ? int.tryParse(map['medicationId'].toString()) : null,
+      presentationName: map['presentationName'].toString(),
+      presentationId: map.containsKey('presentationId') && map['presentationId'] != 'null' ? int.tryParse(map['presentationId'].toString()) : null,
       medicationDosage: map['medicationDosage'].toString(),
       doseAmount: int.parse(map['doseAmount'].toString()),
       doseUnit: DoseUnitOption.values.byName(map['doseUnit'].toString().split('.')[1]),
@@ -177,6 +189,9 @@ class Medication {
       'doctorName': doctorName,
       'doctorRegistration': doctorRegistration,
       'medicationName': medicationName,
+      'medicationId': medicationId,
+      'presentationName': presentationName,
+      'presentationId': presentationId,
       'medicationDosage': medicationDosage,
       'doseAmount': doseAmount,
       'doseUnit': doseUnit.toString(),

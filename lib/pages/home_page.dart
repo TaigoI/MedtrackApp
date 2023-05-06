@@ -1,15 +1,14 @@
+import 'dart:async';
+
+import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/pages/medication_page.dart';
+import 'package:medtrack/pages/ring_page.dart';
+import 'package:medtrack/services/alarms_service.dart';
 
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
-
-import 'dart:async';
-import 'package:alarm/alarm.dart';
-
-import 'package:medtrack/services/alarms_service.dart';
-import 'package:medtrack/pages/ring_page.dart';
 
 DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
 
@@ -97,6 +96,7 @@ class _HomeState extends State<Home> {
                 child: ListView.builder(
                   itemCount: box.length,
                   itemBuilder: (context, index) {
+                    print(box.getAt(index).cast<String, dynamic>());
                     return MedicationWidget.fromMap(box.getAt(index).cast<String, dynamic>());
                   },
                 ),

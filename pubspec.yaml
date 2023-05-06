@@ -16,6 +16,10 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   intl: ^0.18.1
+  sqflite: ^2.2.8+1
+  diacritic: ^0.1.3
+  flutter_typeahead: ^4.3.8
+  string_similarity: ^2.0.0
   qr_flutter: ^4.0.0
   path_provider: ^2.0.14
   share: ^2.0.4
@@ -36,6 +40,7 @@ flutter:
     - sounds/nokia.mp3
     - sounds/one_piece.mp3
     - sounds/star_wars.mp3
+    - assets/database/medications.db
 
   # To add assets to your application, add an assets section, like this:
   # assets:

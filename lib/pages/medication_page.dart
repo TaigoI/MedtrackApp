@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:medtrack/dao/medication_dataset.dart';
+import 'package:medtrack/dao/presentation_dataset.dart';
 import 'package:medtrack/enums/dose_unit.dart';
 import 'package:medtrack/enums/plural.dart';
 import 'package:medtrack/enums/time_unit.dart';
@@ -17,6 +20,14 @@ class MedicationPage extends StatefulWidget {
 
 class _MedicationPageState extends State<MedicationPage> {
 
+  final TextEditingController _medicationNameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _medicationNameController.text = widget.medication.medicationName;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colors = Theme.of(context).colorScheme;
@@ -28,6 +39,14 @@ class _MedicationPageState extends State<MedicationPage> {
         enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: colors.outline)),
         focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: colors.primary, width: 2)),
         suffixStyle: TextStyle(color: colors.onSurfaceVariant),
+      );
+    }
+
+    saveAndReturn(){
+      widget.medication.save();
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Medicamento ${widget.isNew ? 'adicionado' : 'atualizado'} com sucesso!')),
       );
     }
 
@@ -90,16 +109,46 @@ class _MedicationPageState extends State<MedicationPage> {
                                     ],
                                   ),
                                   const SizedBox(height: 32),
-                                  TextFormField(
-                                      initialValue: widget.medication.medicationName,
-                                      decoration: getInputDecoration("Medicamento", "Paracetamol"),
-                                      onSaved: (String? value) {setState(() {widget.medication.medicationName = value!;});}
+                                  TypeAheadFormField(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                        controller: _medicationNameController,
+                                        decoration: getInputDecoration("Medicamento", null)
+                                    ),
+                                    suggestionsCallback: (text) async {return MedicationDataset.findByNameSortedByDistance(text);},
+                                    itemBuilder: (context, suggestion) {return ListTile(title: Text(suggestion['name']),);},
+                                    noItemsFoundBuilder: (context) {return ListTile(title: Text('Medicamento não encontrado. Você pode ajustar '));},
+                                    onSuggestionSelected: (suggestion) {
+                                      setState(() {
+                                        _medicationNameController.text = suggestion['name'];
+                                        widget.medication.medicationName = suggestion['name'];
+                                      });
+                                    },
+                                    onSaved: (text) {
+                                      setState(() {
+                                        widget.medication.medicationName = text!;
+                                      });
+                                    },
                                   ),
                                   const SizedBox(height: 16),
-                                  TextFormField(
-                                      initialValue: widget.medication.medicationDosage,
-                                      decoration: getInputDecoration("Dosagem", "500mg Comprimido"),
-                                      onSaved: (String? value) {setState(() {widget.medication.medicationDosage = value!;});}
+                                  TypeAheadFormField(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                        controller: _medicationNameController,
+                                        decoration: getInputDecoration("Medicamento", null)
+                                    ),
+                                    suggestionsCallback: (text) async {return MedicationDataset.findByNameSortedByDistance(text);},
+                                    itemBuilder: (context, suggestion) {return ListTile(title: Text(suggestion['name']),);},
+                                    noItemsFoundBuilder: (context) {return ListTile(title: Text('Medicamento não encontrado. Você pode ajustar '));},
+                                    onSuggestionSelected: (suggestion) {
+                                      setState(() {
+                                        _medicationNameController.text = suggestion['name'];
+                                        widget.medication.medicationDosage = suggestion['name'];
+                                      });
+                                    },
+                                    onSaved: (text) {
+                                      setState(() {
+                                        widget.medication.medicationDosage = text!;
+                                      });
+                                    },
                                   ),
                                   const SizedBox(height: 16),
                                   Row(
@@ -190,12 +239,7 @@ class _MedicationPageState extends State<MedicationPage> {
                                 minimumSize: const Size(double.infinity, double.infinity) // put the width and height you want
                             ),
                             onPressed: () {
-                              // Validate returns true if the form is valid, or false otherwise.
-                              widget.medication.save();
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Medicamento ${widget.isNew ? 'adicionado' : 'atualizado'} com sucesso!')),
-                              );
+
                             },
                             child: const Text('Salvar'),
                           )
@@ -205,6 +249,35 @@ class _MedicationPageState extends State<MedicationPage> {
               ),
             ],
           ),
+        ),
+      ),
+      floatingActionButton: Expanded(
+        child: FloatingActionButton.extended(
+            onPressed: () {
+              if(widget.medication.medicationId == null){
+                MedicationDataset.getByName(widget.medication.medicationName)
+                    .then((medication) {
+                  if(medication != null){
+                    widget.medication.medicationId = medication['id'];
+                    widget.medication.medicationName = medication['name'];
+                  }
+                }).then((medication) {
+                  if(widget.medication.presentationId == null){
+                    PresentationDataset.searchByNameAndMedicationId(widget.medication.presentationName, widget.medication.medicationId!)
+                        .then((presentation) {
+                      if(presentation != null){
+                        widget.medication.presentationId = presentation['id'];
+                        widget.medication.presentationName = presentation['name'];
+                      }
+                    });
+                  }
+                });
+              }
+
+              saveAndReturn();
+            },
+            label: const Text('Salvar'),
+            icon: const Icon(Icons.check)
         ),
       )
     );

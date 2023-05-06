@@ -1,10 +1,11 @@
+import 'package:alarm/alarm.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/pages/confirm_qr_code_page.dart';
-import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/pages/home_page.dart';
+import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/theme.dart';
-import 'package:alarm/alarm.dart';
+import 'package:medtrack/util/medicationsDatabase.dart';
 
 const String chave = "medtrack qrCode";
 
@@ -16,7 +17,7 @@ Future<void> main() async {
   await Hive.initFlutter();
   await Hive.openBox('medication');
   await Hive.openBox('alarm');
-
+  await MedicationsDatabaseHelper().init();
   await Alarm.init(showDebugLogs: true);
   
   for (AlarmSettings alarm in Alarm.getAlarms()) {
@@ -53,7 +54,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const Home(),
-        '/scan/confirm': (context) => ScanQrCode()
+        '/scan/confirm': (context) => const ScanQrCode()
       },
       // home: Home(),
     );
