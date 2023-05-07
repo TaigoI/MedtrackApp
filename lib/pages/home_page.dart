@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/pages/medication_page.dart';
+import 'package:medtrack/pages/read_json.dart';
+import 'package:medtrack/pages/settings_page.dart';
 
 import '../models/medication.dart';
 import '../widgets/medication_widget.dart';
@@ -23,6 +25,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final _medicationBox = Hive.box('medication');
+  final QRCodeScanner _qrCodeScanner = QRCodeScanner();
 
   late List<AlarmSettings> alarms;
   static StreamSubscription? subscription;
@@ -103,6 +106,32 @@ class _HomeState extends State<Home> {
               );
             }
           },
+        ),
+        bottomNavigationBar: BottomAppBar(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: Icon(Icons.qr_code),
+                onPressed: () async {
+                  await _qrCodeScanner.scanQRCode();
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.home),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Settings()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
         floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
