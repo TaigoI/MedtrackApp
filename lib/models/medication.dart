@@ -3,8 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:medtrack/enums/dose_unit.dart';
 import 'package:medtrack/enums/time_unit.dart';
-import 'package:medtrack/models/alarm.dart';
+import 'package:medtrack/services/alarms_service.dart';
 
+class AlarmStamp {
+  final DateTime timeStamp;
+  bool active = true;
+
+  AlarmStamp({required this.timeStamp});
+  AlarmStamp.withActive({required this.timeStamp, required this.active});
+
+  factory AlarmStamp.fromMap(Map<dynamic, dynamic> map) {
+    return AlarmStamp.withActive(
+      timeStamp: map.containsKey('timeStamp') ? DateTime.parse(map['timeStamp'].toString()) : DateTime.now(),
+      active: map['active'] 
+    );
+  }
+
+  toMap() {
+    Map<String, dynamic> map = {
+      'timeStamp': timeStamp.toString(),
+      'active': active
+    };
+
+    return map;
+  }
+}
 
 class Medication {
   static final _box = Hive.box('medication');
@@ -33,6 +56,8 @@ class Medication {
   DateTime? initialDosage; //primeira vez que o paciente tomou o remédio
   DateTime? expectedFinalDosage;
 
+  List<AlarmStamp> timeStamps = [];
+  
   Medication({
     required this.key,
     required this.active,
@@ -51,6 +76,26 @@ class Medication {
     this.expectedFinalDosage
   });
 
+  Medication.withStamps({
+   required this.key,
+    required this.active,
+    required this.patientName,
+    required this.doctorName,
+    required this.doctorRegistration,
+    required this.medicationName,
+    required this.medicationDosage,
+    required this.doseAmount,
+    required this.doseUnit,
+    required this.interval,
+    required this.intervalUnit,
+    required this.occurrences,
+    required this.comments,
+    this.initialDosage,
+    this.expectedFinalDosage,
+    required this.timeStamps
+  });
+
+    
   static newKey(){
     int i = 0;
     while (i < 10000){
@@ -63,14 +108,22 @@ class Medication {
   }
 
   get(String key) { return Medication.fromMap(_box.get(key)!); }
-  save(){
-    _box.put(key, toMap());
-    print(_box.values);
+  save(){ _box.put(key, toMap()); }
+  delete() async {
+    await _box.delete(key);
+    await removeFromAlarmsList();
   }
-  delete(){
-    _box.delete(key);
-    for (var alarm in getAlarmList()) {
-      alarm.delete();
+
+  Future<void> removeFromAlarmsList() async {
+    List<int> indexesToRemove = [];
+    for (int i = 0; i < alarmsList.length; i++) {
+      if (await alarmsList[i].removeItem(patientName, key)) {
+        indexesToRemove.add(i);
+      }
+    }
+  
+    for (int idx in indexesToRemove.reversed) {
+      alarmsList.removeAt(idx);
     }
   }
 
@@ -94,23 +147,24 @@ class Medication {
     );
   }
 
-  factory Medication.fromMap(Map<String, dynamic> map) {
-    return Medication(
-        key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
-        active: bool.parse(map['active'].toString()),
-        patientName: map['patientName'].toString(),
-        doctorName: map['doctorName'].toString(),
-        doctorRegistration: map['doctorRegistration'].toString(),
-        medicationName: map['medicationName'].toString(),
-        medicationDosage: map['medicationDosage'].toString(),
-        doseAmount: int.parse(map['doseAmount'].toString()),
-        doseUnit: DoseUnitOption.values.byName(map['doseUnit']),
-        interval: int.parse(map['interval'].toString()),
-        intervalUnit: TimeUnitOption.values.byName(map['intervalUnit']),
-        occurrences: int.parse(map['occurrences'].toString()),
-        comments: map['comments'].toString(),
-        initialDosage: map.containsKey('initialDosage') && map['initialDosage'] != 'null' ? DateTime.parse(map['initialDosage'].toString()) : null,
-        expectedFinalDosage: map.containsKey('expectedFinalDosage') && map['expectedFinalDosage'] != 'null' ? DateTime.parse(map['expectedFinalDosage'].toString()) : null
+  factory Medication.fromMap(Map<dynamic, dynamic> map) {
+    return Medication.withStamps(
+      key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
+      active:map['active'],
+      patientName: map['patientName'].toString(),
+      doctorName: map['doctorName'].toString(),
+      doctorRegistration: map['doctorRegistration'].toString(),
+      medicationName: map['medicationName'].toString(),
+      medicationDosage: map['medicationDosage'].toString(),
+      doseAmount: int.parse(map['doseAmount'].toString()),
+      doseUnit: DoseUnitOption.values.byName(map['doseUnit'].toString().split('.')[1]),
+      interval: int.parse(map['interval'].toString()),
+      intervalUnit: TimeUnitOption.values.byName(map['intervalUnit'].toString().split('.')[1]),
+      occurrences: int.parse(map['occurrences'].toString()),
+      comments: map['comments'].toString(),
+      initialDosage: map.containsKey('initialDosage') && map['initialDosage'] != 'null' ? DateTime.parse(map['initialDosage'].toString()) : null,
+      expectedFinalDosage: map.containsKey('expectedFinalDosage') && map['expectedFinalDosage'] != 'null' ? DateTime.parse(map['expectedFinalDosage'].toString()) : null,
+      timeStamps: List.from(map['timeStamps'].map((item) => AlarmStamp.fromMap(item))) 
     );
   }
 
@@ -131,44 +185,8 @@ class Medication {
       'comments': comments,
       'initialDosage': initialDosage.toString(),
       'expectedFinalDosage': expectedFinalDosage.toString(),
+      'timeStamps': List.from(timeStamps.map((item) => item.toMap()))
     };
-  }
-
-  //TODO: Can be optimized with a 'medicationToAlarms' Box<MedicationKey, List<AlarmKey>>
-  List<Alarm> getAlarmList() {
-    List<Alarm> alarmList = [];
-    _alarmBox.values.where((map) => map['medicationKey'] == key).forEach((map) {
-      var alarm = Alarm.fromMap(map.cast<String, dynamic>());
-      if(alarm.timestamp.difference(DateTime.now()).inMinutes > 0){
-        alarmList.add(alarm);
-      }
-    });
-    alarmList.sort(compareAlarms);
-    return alarmList;
-  }
-
-  buildAlarms(){
-    var intervalInMinutes = getIntervalInMinutes();
-    for(int i = 0; i < occurrences; i++){
-      var alarm = Alarm(
-        key: UniqueKey().toString(),
-        medicationKey: key,
-        active: true,
-        timestamp: initialDosage!.add(Duration(minutes: i*intervalInMinutes)),
-      );
-      alarm.save();
-    }
-
-    expectedFinalDosage = initialDosage!.add(Duration(minutes:(occurrences-1)*intervalInMinutes));
-    save();
-  }
-
-  clearAlarms(){
-    var alarmList = getAlarmList();
-    for (var element in alarmList) { element.delete(); }
-    initialDosage = null;
-    expectedFinalDosage = null;
-    save();
   }
 
   int getIntervalInMinutes(){
@@ -178,19 +196,23 @@ class Medication {
     return interval;
   }
 
-  int compareAlarms(Alarm a, Alarm b){
-    return a.timestamp.compareTo(b.timestamp);
+  
+  Future buildAlarms() async {
+    int intervalInMinutes = getIntervalInMinutes();
+    expectedFinalDosage = initialDosage!.add(Duration(minutes: (occurrences-1)*intervalInMinutes));
 
-    //TODO: ask about 'active' aware sorting
-    /*if((!a.active && !b.active) || (a.active && b.active)){
-      return a.timestamp.compareTo(b.timestamp);
-    } else {
-      if(a.active){
-        return -1;
-      } else {
-        return 1;
-      }
-    }*/
+    var stamps = await alarmFromMedication(this, intervalInMinutes);
+    for (var stamp in stamps) {
+      timeStamps.add(stamp);
+    }
+  }
+
+  clearAlarms() async {
+    await removeFromAlarmsList();
+    timeStamps.clear();
+    initialDosage = null;
+    expectedFinalDosage = null;
+    save();
   }
 
 }
