@@ -147,6 +147,7 @@ class Medication {
     );
   }
 
+  
   factory Medication.fromMap(Map<dynamic, dynamic> map) {
     return Medication.withStamps(
       key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
@@ -178,9 +179,9 @@ class Medication {
       'medicationName': medicationName,
       'medicationDosage': medicationDosage,
       'doseAmount': doseAmount,
-      'doseUnit': doseUnit.toString().split('.')[1],
+      'doseUnit': doseUnit.toString(),
       'interval': interval,
-      'intervalUnit': intervalUnit.toString().split('.')[1],
+      'intervalUnit': intervalUnit.toString(),
       'occurrences': occurrences,
       'comments': comments,
       'initialDosage': initialDosage.toString(),
