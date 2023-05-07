@@ -16,7 +16,6 @@ Future<void> main() async {
   await Hive.initFlutter();
   await Hive.openBox('medication');
   await Hive.openBox('alarm');
-  await Hive.openBox('settings');
 
   await Alarm.init(showDebugLogs: true);
   
