@@ -100,7 +100,8 @@ class AppAlarm {
                     ))))), // vsf
         audioPath: map['audioPath'],
         alarmId: map['alarmId'],
-        active: map['active'] == 'true' ? true : false);
+        active: map['active'] 
+      );
   }
 
   Map<String, dynamic> toMap() {
@@ -266,8 +267,11 @@ void clearAllAlarms() async {
 
 List<AppAlarm> getAlarmList() {
   List<AppAlarm> list = [];
+  DateTime now = DateTime.now();
   _alarmBox.toMap().forEach((key, value) {
-    list.add(AppAlarm.fromMap(Map<String, dynamic>.from(value as Map)));
+    if (DateTime.parse(value['timeStamp'].toString()).isAfter(now)) {
+      list.add(AppAlarm.fromMap(Map<String, dynamic>.from(value as Map)));
+    }
   });
 
   return list;
@@ -275,8 +279,6 @@ List<AppAlarm> getAlarmList() {
 
 Future<void> setItemInactive(
     DateTime timeStamp, String patientName, String medicationKey) async {
-  print('will set inactive');
-  printAllTimeStamps();
   await alarmsList
       .firstWhere((element) => element.timeStamp == timeStamp)
       .setItemInactive(patientName, medicationKey);
