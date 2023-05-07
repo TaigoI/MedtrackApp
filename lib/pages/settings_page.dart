@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
-import '../models/settings.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:medtrack/utils.dart';
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
