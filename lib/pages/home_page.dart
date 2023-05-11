@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:medtrack/pages/medication_page.dart';
 
 import '../models/medication.dart';
@@ -10,6 +11,9 @@ import 'package:alarm/alarm.dart';
 
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/pages/ring_page.dart';
+import 'package:medtrack/pages/read_json.dart';
+import 'package:medtrack/pages/settings_page.dart';
+
 
 DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
 
@@ -23,6 +27,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final _medicationBox = Hive.box('medication');
+  final QRCodeScanner _qrCodeScanner = QRCodeScanner();
 
   late List<AlarmSettings> alarms;
   static StreamSubscription? subscription;
@@ -104,25 +109,92 @@ class _HomeState extends State<Home> {
             }
           },
         ),
+        // floatingActionButton: Column(
+        //     mainAxisAlignment: MainAxisAlignment.end,
+        //     children: <Widget>[
+        //         FloatingActionButton(
+        //           onPressed: () {
+        //             Navigator.push(
+        //               context,
+        //               MaterialPageRoute(builder: (context) => MedicationPage(medication: Medication.empty(), isNew: true,)),
+        //             );
+        //           },
+        //           child: const Icon(Icons.add),
+        //         ),
+        //         const SizedBox(height: 10),
+        //         FloatingActionButton(
+        //           onPressed: () async {
+        //             await _clearStorage();
+        //           },
+        //           child: const Icon(Icons.delete),
+        //         ),
+        //         FloatingActionButton(
+        //           onPressed: () async {
+        //             await _qrCodeScanner.scanQRCode();
+        //           },
+        //           child: const Icon(Icons.qr_code),
+        //         ),
+        //     ]
+        // ),
+        bottomNavigationBar: BottomAppBar(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: Icon(Icons.dashboard),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.home),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: Icon(Icons.settings),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => Settings()),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
         floatingActionButton: Column(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-                FloatingActionButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => MedicationPage(medication: Medication.empty(), isNew: true,)),
-                    );
-                  },
-                  child: const Icon(Icons.add),
-                ),
-                const SizedBox(height: 10),
-                FloatingActionButton(
-                  onPressed: () async {
-                    await _clearStorage();
-                  },
-                  child: const Icon(Icons.delete),
-                ),
+              SpeedDial(
+                child: const Icon(Icons.add),
+                children: [
+                  SpeedDialChild(
+                    shape: CircleBorder(),
+                    child: const Icon(Icons.delete),
+                    label: 'Excluir alarmes',
+                    onTap: () {
+                      _clearStorage();
+                    },
+                  ),
+                  SpeedDialChild(
+                    shape: CircleBorder(),
+                    child: const Icon(Icons.receipt),
+                    label: 'Adicionar medicamentos',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MedicationPage(medication: Medication.empty(), isNew: true,)),
+                      );
+                    },
+                  ),
+                  SpeedDialChild(
+                    shape: CircleBorder(),
+                    child: const Icon(Icons.qr_code),
+                    label: 'Importar nova receita',
+                    onTap: () async {
+                      await _qrCodeScanner.scanQRCode();
+                    },
+                  ),
+                ],
+              ),
             ]
         )
     );
