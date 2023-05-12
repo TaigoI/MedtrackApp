@@ -26,7 +26,7 @@ class QRCodeScanner {
         m['patientName'] = jsonResult['patientName'];
         m['active'] = true;
 
-        var medication = Medication.fromMap(m);
+        var medication = Medication.fromJson(m);
         medication.save();
       });
       // ScaffoldMessenger.of().showSnackBar(SnackBar(

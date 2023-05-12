@@ -108,7 +108,9 @@ class Medication {
   }
 
   get(String key) { return Medication.fromMap(_box.get(key)!); }
-  save(){ _box.put(key, toMap()); }
+  save(){
+    _box.put(key, toMap());
+  }
   delete() async {
     await _box.delete(key);
     await removeFromAlarmsList();
@@ -165,7 +167,7 @@ class Medication {
       comments: map['comments'].toString(),
       initialDosage: map.containsKey('initialDosage') && map['initialDosage'] != 'null' ? DateTime.parse(map['initialDosage'].toString()) : null,
       expectedFinalDosage: map.containsKey('expectedFinalDosage') && map['expectedFinalDosage'] != 'null' ? DateTime.parse(map['expectedFinalDosage'].toString()) : null,
-      timeStamps: List.from(map['timeStamps'].map((item) => AlarmStamp.fromMap(item))) 
+      timeStamps: List.from(map['timeStamps'].map((item) => AlarmStamp.fromMap(item)))
     );
   }
 
@@ -187,6 +189,46 @@ class Medication {
       'initialDosage': initialDosage.toString(),
       'expectedFinalDosage': expectedFinalDosage.toString(),
       'timeStamps': List.from(timeStamps.map((item) => item.toMap()))
+    };
+  }
+
+  factory Medication.fromJson(Map<String, dynamic> map) {
+    return Medication(
+        key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
+        active: bool.parse(map['active'].toString()),
+        patientName: map['patientName'].toString(),
+        doctorName: map['doctorName'].toString(),
+        doctorRegistration: map['doctorRegistration'].toString(),
+        medicationName: map['medicationName'].toString(),
+        medicationDosage: map['medicationDosage'].toString(),
+        doseAmount: int.parse(map['doseAmount'].toString()),
+        doseUnit: DoseUnitOption.values.byName(map['doseUnit']),
+        interval: int.parse(map['interval'].toString()),
+        intervalUnit: TimeUnitOption.values.byName(map['intervalUnit']),
+        occurrences: int.parse(map['occurrences'].toString()),
+        comments: map['comments'].toString(),
+        initialDosage: map.containsKey('initialDosage') && map['initialDosage'] != 'null' ? DateTime.parse(map['initialDosage'].toString()) : null,
+        expectedFinalDosage: map.containsKey('expectedFinalDosage') && map['expectedFinalDosage'] != 'null' ? DateTime.parse(map['expectedFinalDosage'].toString()) : null
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'key': key,
+      'active': active,
+      'patientName': patientName,
+      'doctorName': doctorName,
+      'doctorRegistration': doctorRegistration,
+      'medicationName': medicationName,
+      'medicationDosage': medicationDosage,
+      'doseAmount': doseAmount,
+      'doseUnit': doseUnit.toString().split('.')[1],
+      'interval': interval,
+      'intervalUnit': intervalUnit.toString().split('.')[1],
+      'occurrences': occurrences,
+      'comments': comments,
+      'initialDosage': initialDosage.toString(),
+      'expectedFinalDosage': expectedFinalDosage.toString(),
     };
   }
 
