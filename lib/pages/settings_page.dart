@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:medtrack/models/settings.dart';
 import 'package:medtrack/main.dart';
+import 'package:medtrack/services/generate_qr_code.dart';
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
@@ -15,153 +14,151 @@ class Settings extends StatefulWidget {
 
 class _SettingsScreenState extends State<Settings> {
   final _preferenceBox = Hive.box('preference');
-  // final List<String> _avalialeRingtones = ['mozart', 'star wars'...];
 
-  //final String _selectedRingtoneRadioTile = settings.selectedRingtones;
-  bool _switchReceiveNotificationsValue = settings.receiveNotifications;
-  bool _switchConfirmAlarmQRCodeValue = settings.confirmAlarmQRCode;
-  bool _switchReceiveNotificationsTwentyMinutesValue = settings.receiveNotificationsTwentyMinutes;
+  String _selectedRingtoneRadioTile = settings!.selectedRingtone;
+  bool _switchConfirmAlarmQRCodeValue = settings!.confirmAlarmQRCode;
+  bool _switchReceiveNotificationsValue = settings!.receiveNotifications;
+  //bool isOptionEnabledQRCode = true;
+  //bool isOptionEnabledNotify = true;
 
-  void _savePreferences() {
-    _preferenceBox.put(
-        'user_prefs',
-        Preference(
-          key: 'key',
-          //selectedRingtones: _selectedRingtoneRadioTile,
-          receiveNotifications: _switchReceiveNotificationsValue,
-          confirmAlarmQRCode: _switchConfirmAlarmQRCodeValue,
-          receiveNotificationsTwentyMinutes: _switchReceiveNotificationsTwentyMinutesValue,
-        ));
+  Future<void> _savePreferences() async {
+    await settings!.save();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Configurações'),
+        title: const Text('Configurações'),
       ),
       body: SettingsList(
-        sections: [
-          //SettingsSection(
-          //title: Text('GERAL'),
-          //tiles: [
-          //   SettingsTile(
-          //     title: Text('Toque do alarme'),
-          //     leading: Icon(Icons.music_note),
-          //     onPressed: (BuildContext context) {
-          //       showDialog(
-          //         context: context,
-          //         builder: (BuildContext context) {
-          //           return AlertDialog(
-          //             title: Text('Defina um novo toque:'),
-          //             content: Column(
-          //               mainAxisSize: MainAxisSize.min,
-          //               children: [
-          //                 RadioListTile(
-          //                   title: Text('Mozart'),
-          //                   value: 'Mozart',
-          //                   groupValue: _selectedRingtoneRadioTile,
-          //                   onChanged: (String? value) {
-          //                     setState(() {
-          //                       _selectedRingtoneRadioTile = value;
-          //                     });
-          //                     Navigator.pop(context);
-          //                     _savePreferences();
-          //                   },
-          //                 ),
-          //                 RadioListTile(
-          //                   title: Text('Nokia'),
-          //                   value: 'Nokia',
-          //                   groupValue: _selectedRingtoneRadioTile,
-          //                   onChanged: (String? value) {
-          //                     setState(() {
-          //                       _selectedRingtoneRadioTile = value;
-          //                     });
-          //                     Navigator.pop(context);
-          //                     _savePreferences();
-          //                   },
-          //                 ),
-          //                 RadioListTile(
-          //                   title: Text('One piece'),
-          //                   value: 'One piece',
-          //                   groupValue: _selectedRingtoneRadioTile,
-          //                   onChanged: (String? value) {
-          //                     setState(() {
-          //                       _selectedRingtoneRadioTile = value;
-          //                     });
-          //                     Navigator.pop(context);
-          //                     _savePreferences();
-          //                   },
-          //                 ),
-          //                 RadioListTile(
-          //                   title: Text('Star Wars'),
-          //                   value: 'Star Wars',
-          //                   groupValue: _selectedRingtoneRadioTile,
-          //                   onChanged: (String? value) {
-          //                     setState(() {
-          //                       _selectedRingtoneRadioTile = value;
-          //                       settings.selectedRingtones = value;
-          //                     });
-          //                     await _savePreferences();
-          //                     Navigator.pop(context);
-          //                     _savePreferences();
-          //                   },
-          //                 ),
-          //               ],
-          //             ),
-          //           );
-          //         },
-          //       );
-          //     },
-          //   ),
-          // ],
-          //),
-          SettingsSection(title: Text('NOTIFICAÇÕES NECESSÁRIAS'), tiles: [
-            SettingsTile.switchTile(
-              title: Text(
-                  'Desejo receber notificações quando der a hora de tomar meus remédios.'),
-              initialValue: _switchReceiveNotificationsValue,
-              onToggle: (bool value) async {
-                setState(() {
-                  _switchReceiveNotificationsValue = value;
-                });
-                settings.receiveNotifications = value;
-                await settings.save();
-              },
+          sections: [
+            SettingsSection(
+              title: const Text('GERAL'),
+              tiles: [
+                SettingsTile(
+                  title: const Text('Toque do alarme'),
+                  leading: const Icon(Icons.music_note),
+                  onPressed: (BuildContext context) {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Defina um novo toque:'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              RadioListTile(
+                                title: const Text('Mozart'),
+                                value: 'sounds/mozart.mp3',
+                                groupValue: _selectedRingtoneRadioTile,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _selectedRingtoneRadioTile = value!;
+                                    settings!.selectedRingtone = value;
+                                  });
+                                  //_savePreferences();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              RadioListTile(
+                                title: const Text('Nokia'),
+                                value: 'sounds/nokia.mp3',
+                                groupValue: _selectedRingtoneRadioTile,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _selectedRingtoneRadioTile = value!;
+                                    settings!.selectedRingtone = value;
+                                  });
+                                  //_savePreferences();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              RadioListTile(
+                                title: const Text('One piece'),
+                                value: 'sounds/one_piece.mp3',
+                                groupValue: _selectedRingtoneRadioTile,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _selectedRingtoneRadioTile = value!;
+                                    settings!.selectedRingtone = value;
+                                  });
+                                  //_savePreferences();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              RadioListTile(
+                                title: const Text('Star Wars'),
+                                value: 'sounds/star_wars.mp3',
+                                groupValue: _selectedRingtoneRadioTile,
+                                onChanged: (String? value) {
+                                  setState(() {
+                                    _selectedRingtoneRadioTile = value!;
+                                    settings!.selectedRingtone = value;
+                                  });
+                                  //_savePreferences();
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
-          ]),
-          SettingsSection(title: Text('NOTIFICAÇÕES OPCIONAIS'), tiles: [
-            SettingsTile.switchTile(
-              title: Text(
-                  'Desejo que o app solicite que eu faça alguma tarefa para comprovar que tomei o remédio.'),
-              initialValue: _switchConfirmAlarmQRCodeValue,
-              onToggle: (bool value) async {
-                setState(() {
-                  _switchConfirmAlarmQRCodeValue = value;
-                });
-                settings.confirmAlarmQRCode = value;
-                await settings.save();
+            SettingsSection(title: const Text('NOTIFICAÇÕES'), tiles: [
+              SettingsTile.switchTile(
+                title: const Text(
+                    'Desejo que o app solicite que eu faça alguma tarefa para comprovar que tomei o remédio.'),
+                initialValue: _switchConfirmAlarmQRCodeValue,
+                //enabled: isOptionEnabledQRCode,
+                onToggle: (bool value) async {
+                  setState(() {
+                    _switchConfirmAlarmQRCodeValue = value;
+                  });
 
-                String mensagem = value ? 'A tarefa será solicitada!' : 'A tarefa não será solicitada.';
-                print(mensagem);
-              },
-            ),
-            SettingsTile.switchTile(
-              title: Text(
-                  'Desejo continuar recebendo a cada 20 minutos o alarme de tomar um remédio enquanto não confirmar que já tomei.'),
-              initialValue: _switchReceiveNotificationsTwentyMinutesValue,
-              onToggle: (bool value) async {
-                setState(() {
-                  _switchReceiveNotificationsTwentyMinutesValue = value;
-                });
-                settings.receiveNotificationsTwentyMinutes = value;
-                await settings.save();
-              },
-            ),
-          ]),
-        ],
-      ),
+                  if (value == true) {
+                    settings!.keyQRCode = await generateQrCodeAndShareIt();
+                    //isOptionEnabledQRCode = true;
+                  } //else {
+                  //   isOptionEnabledQRCode = false;
+                  // }
+
+                  settings!.confirmAlarmQRCode = value;
+                  await settings!.save();
+
+                  String mensagem = value
+                      ? 'A tarefa será solicitada!'
+                      : 'A tarefa não será solicitada.';
+                  print(mensagem);
+                },
+              ),
+              SettingsTile.switchTile(
+                title: const Text(
+                    'Desejo continuar recebendo a cada 20 minutos o alarme de tomar um remédio enquanto não confirmar que já tomei.'),
+                initialValue: _switchReceiveNotificationsValue,
+                //enabled: isOptionEnabledNotify,
+                onToggle: (bool value) async {
+                  setState(() {
+                    _switchReceiveNotificationsValue = value;
+                  });
+
+                  // if (value == true) {
+                  //   isOptionEnabledNotify = true; //chamar a função de soneca do helder
+                  // } else {
+                  //   isOptionEnabledNotify = false;
+                  // }
+
+                  settings!.receiveNotifications = value;
+                  await settings!.save();
+                },
+              ),
+            ]),
+          ],
+        ),
     );
   }
 }
-

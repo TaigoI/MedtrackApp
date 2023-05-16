@@ -6,17 +6,17 @@ class Preference {
   static final _preferenceBox = Hive.box('preference');
 
   String key;
-  //String selectedRingtones;
-  bool receiveNotifications;
+  String selectedRingtone;
+  String? keyQRCode;
   bool confirmAlarmQRCode;
-  bool receiveNotificationsTwentyMinutes;
+  bool receiveNotifications;
 
   Preference({
     required this.key,
-    //required this.selectedRingtones,
-    required this.receiveNotifications,
+    required this.selectedRingtone,
+    required this.keyQRCode,
     required this.confirmAlarmQRCode,
-    required this.receiveNotificationsTwentyMinutes,
+    required this.receiveNotifications,
   }) {
     save();
   }
@@ -28,20 +28,20 @@ class Preference {
   factory Preference.fromMap(Map<String, dynamic> map) {
     return Preference(
       key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
-      //selectedRingtones: List<String>.from(map['selectedRingtones']),
-      receiveNotifications: true,
+      selectedRingtone: map['selectedRingtone'].toString(),
+      keyQRCode: map['keyQRCode'].toString(),
       confirmAlarmQRCode: true,
-      receiveNotificationsTwentyMinutes: true,
+      receiveNotifications: true,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'key': key,
-      //'selectedRingtones': selectedRingtones,
-      'receiveNotifications': receiveNotifications,
+      'selectedRingtone': selectedRingtone,
+      'keyQRCode': keyQRCode,
       'confirmAlarmQRCode': confirmAlarmQRCode,
-      'receiveNotificationsTwentyMinutes': receiveNotificationsTwentyMinutes
+      'receiveNotificationsTwentyMinutes': receiveNotifications
     };
   }
 

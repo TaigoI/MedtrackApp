@@ -42,7 +42,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    loadAlarms();
+    //loadAlarms();
     subscription ??= Alarm.ringStream.stream
         .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
   }
@@ -92,8 +92,36 @@ class _HomeState extends State<Home> {
           valueListenable: _medicationBox.listenable(),
           builder: (context, Box box, widget) {
             if(box.isEmpty){
-              return const Center(
-                child: Text('Empty'),
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 150.0,
+                        height: 150.0,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF044c73),
+                        ),
+                        child: const Icon(
+                          Icons.vaccines_rounded,
+                          color: Color(0xFFbadcf5),
+                          size: 80.0,
+                        ),
+                      ),
+                      const SizedBox(height: 20.0),
+                      const Text(
+                        'Para importar uma receita, \nclique no botão +.',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+
+                    ],
+                  ),
+                ),
               );
             } else {
               return Container(
@@ -109,33 +137,6 @@ class _HomeState extends State<Home> {
             }
           },
         ),
-        // floatingActionButton: Column(
-        //     mainAxisAlignment: MainAxisAlignment.end,
-        //     children: <Widget>[
-        //         FloatingActionButton(
-        //           onPressed: () {
-        //             Navigator.push(
-        //               context,
-        //               MaterialPageRoute(builder: (context) => MedicationPage(medication: Medication.empty(), isNew: true,)),
-        //             );
-        //           },
-        //           child: const Icon(Icons.add),
-        //         ),
-        //         const SizedBox(height: 10),
-        //         FloatingActionButton(
-        //           onPressed: () async {
-        //             await _clearStorage();
-        //           },
-        //           child: const Icon(Icons.delete),
-        //         ),
-        //         FloatingActionButton(
-        //           onPressed: () async {
-        //             await _qrCodeScanner.scanQRCode();
-        //           },
-        //           child: const Icon(Icons.qr_code),
-        //         ),
-        //     ]
-        // ),
         bottomNavigationBar: BottomAppBar(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -166,14 +167,6 @@ class _HomeState extends State<Home> {
               SpeedDial(
                 child: const Icon(Icons.add),
                 children: [
-                  SpeedDialChild(
-                    shape: CircleBorder(),
-                    child: const Icon(Icons.delete),
-                    label: 'Excluir alarmes',
-                    onTap: () {
-                      _clearStorage();
-                    },
-                  ),
                   SpeedDialChild(
                     shape: CircleBorder(),
                     child: const Icon(Icons.receipt),
