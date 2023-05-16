@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:medtrack/widgets/scanner_error_widget.dart';
 import 'package:alarm/alarm.dart';
+import 'package:medtrack/main.dart';
 
 class ScanQrCode extends StatefulWidget {
-
-  const ScanQrCode({Key? key}) : super(key: key);
+  final int alarmId;
+  const ScanQrCode({Key? key, required this.alarmId}) : super(key: key);
 
   @override
   State<ScanQrCode> createState() => _ScanQrCodeState();
@@ -14,6 +15,7 @@ class ScanQrCode extends StatefulWidget {
 class _ScanQrCodeState extends State<ScanQrCode> {
   BarcodeCapture? barcode;
   String message = "Escaneie o QR code!";
+  final String? confirmationKey = settings!.keyQRCode;
 
   final MobileScannerController controller = MobileScannerController(
       torchEnabled: false,
@@ -48,11 +50,6 @@ class _ScanQrCodeState extends State<ScanQrCode> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    
-    final String confirmationKey = args['confirmationKey'];
-    final int alarmId = args['alarmId'];
-
     return Scaffold(
       appBar: AppBar(
         title: Image.asset('assets/images/logo.png', height: 48),
@@ -74,7 +71,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                   setState(() {
                     this.barcode = barcode;
                     if (this.barcode!.barcodes.first.rawValue == confirmationKey) {
-                      Alarm.stop(alarmId).then((_) => Navigator.pushNamed(context, '/'));
+                      Alarm.stop(widget.alarmId).then((_) => Navigator.pushNamed(context, '/'));
                     } else {
                       setState(() => message = "Código não reconhecido.");
                     }
@@ -148,7 +145,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                                 ),
                                 TextButton(
                                   onPressed: () {
-                                    Alarm.stop(alarmId).then((_) => Navigator.pushNamed(context, '/'));
+                                    Alarm.stop(widget.alarmId).then((_) => Navigator.pushNamed(context, '/'));
                                   },
                                   child: const Text("Confirmar")
                                 )

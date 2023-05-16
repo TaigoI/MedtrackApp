@@ -3,11 +3,18 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'pages/home_page.dart';
 import 'theme.dart';
 import 'package:medtrack/models/settings.dart';
+import 'package:alarm/alarm.dart';
+import 'package:medtrack/services/alarms_service.dart';
 
 const settingsKey = 'user_prefs';
 Preference? settings;
 
 void main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  await Alarm.init(showDebugLogs: true);
+
   await Hive.initFlutter();
   await Hive.openBox('medication');
   await Hive.openBox('alarm');
@@ -26,6 +33,21 @@ void main() async {
         confirmAlarmQRCode: false,
         receiveNotifications: true);
   }
+
+  DateTime now = DateTime.now();
+
+  for (AlarmSettings alarm in Alarm.getAlarms()) {
+    if (alarm.dateTime.isBefore(now)) {
+      await Alarm.stop(alarm.id);
+    }
+  }
+
+  await Alarm.setNotificationOnAppKillContent(
+    'Seus alarmes podem não tocar', 
+    'Você fechou o app. Por favor, abra-o novamente para que os alarmes toquem.'
+  );
+
+  alarmsList = await getAlarmList();
 
   runApp(const MyApp());
 }

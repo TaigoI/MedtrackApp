@@ -152,7 +152,7 @@ class AppAlarm {
               dateTime: timeStamp,
               assetAudioPath: audioPath,
               vibrate: true,
-              loopAudio: false,
+              loopAudio: true,
               notificationTitle: "Hora dos Remédios",
               notificationBody: "Abra o app para confirmar que tomou"));
     }
@@ -234,7 +234,7 @@ Future<List<AlarmStamp>> alarmFromMedication(Medication medication, int interval
     if (!timeStampTaken) {
       alarmsList.add(await AppAlarm(
           key: UniqueKey().toString(),
-          audioPath: 'sounds/mozart.mp3',
+          audioPath: settings!.selectedRingtone,
           timeStamp: currentStamp,
           medicationKey: medication.key,
           patientName: medication.patientName));
@@ -265,17 +265,20 @@ void clearAllAlarms() async {
   await _alarmBox.clear();
 }
 
-List<AppAlarm> getAlarmList() {
+Future<List<AppAlarm>> getAlarmList() async {
   List<AppAlarm> list = [];
   DateTime now = DateTime.now();
-  _alarmBox.toMap().forEach((key, value) {
+  _alarmBox.toMap().forEach((key, value) async {
     if (DateTime.parse(value['timeStamp'].toString()).isAfter(now)) {
       list.add(AppAlarm.fromMap(Map<String, dynamic>.from(value as Map)));
+    } else {
+      await Alarm.stop(int.parse(value['id']));
     }
   });
 
   return list;
 }
+
 
 Future<void> setItemInactive(
     DateTime timeStamp, String patientName, String medicationKey) async {

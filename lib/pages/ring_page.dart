@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:alarm/alarm.dart';
+import 'package:medtrack/models/settings.dart';
+import 'package:medtrack/pages/confirm_qr_code_page.dart';
+import 'package:medtrack/pages/home_page.dart';
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/models/medication.dart';
 import 'package:hive/hive.dart';
 import 'package:medtrack/enums/dose_unit.dart';
 import 'package:medtrack/enums/plural.dart';
+import 'package:medtrack/main.dart';
 
 const snoozeTime = 20;
 
 class RingScreen extends StatefulWidget {
   final AlarmSettings alarmSettings;
   final Box<dynamic> medicationBox;
-  
   late final AppAlarm appAlarm;
 
   RingScreen({super.key, required this.alarmSettings, required this.medicationBox}) {
     appAlarm = alarmsList
         .firstWhere((element) => element.alarmId == alarmSettings.id);
+
   }
 
   @override
@@ -25,9 +29,7 @@ class RingScreen extends StatefulWidget {
 
 class _RingScreenState extends State<RingScreen> {
   final Map<String, List<bool>> _checklist = {};
-  final bool confirmation = false;
-  final String confirmationKey = "teste";
-
+  final bool confirmation = settings!.confirmAlarmQRCode;
   
   @override
   void initState() {
@@ -43,7 +45,8 @@ class _RingScreenState extends State<RingScreen> {
     }
 
     if (!active) {
-      Alarm.stop(widget.appAlarm.alarmId).then((_) => Navigator.pushNamed(context, '/'));
+      Alarm.stop(widget.appAlarm.alarmId).then((_) => 
+        Navigator.push(context, MaterialPageRoute(builder: (context) => Home())));
     }
 
     widget.appAlarm.items.forEach((patientName, itemsList) {
@@ -189,8 +192,9 @@ class _RingScreenState extends State<RingScreen> {
                                                               0)
                                                           .add(const Duration(
                                                               minutes: snoozeTime))),)
-                                          .then((_) => Navigator.pushNamed(
-                                              context, '/'));
+                                          .then((_) => Navigator.push(context, 
+                                            MaterialPageRoute(builder: (context) => Home())));
+
                                     },
                                     child: const Text("Confirmar"))
                               ],
@@ -218,8 +222,7 @@ class _RingScreenState extends State<RingScreen> {
                                       TextButton(
                                           onPressed: () => Alarm.stop(
                                                   widget.alarmSettings.id)
-                                              .then((_) => Navigator.pushNamed(
-                                                  context, '/')),
+                                              .then((_) => Navigator.push(context, MaterialPageRoute(builder: (context) => Home()))),
                                           child: const Text("Confirmar"))
                                     ])),
                     icon: const Icon(Icons.arrow_circle_right),
@@ -233,11 +236,8 @@ class _RingScreenState extends State<RingScreen> {
                           ? null
                           : () {
                               if (confirmation) {
-                                Navigator.pushNamed(context, '/scan/confirm', arguments: 
-                                <String, dynamic> {
-                                  'confirmationKey': confirmationKey,
-                                  'alarmId': widget.appAlarm.alarmId
-                                });
+                                Navigator.push(context, 
+                                  MaterialPageRoute(builder: (context) => ScanQrCode(alarmId: widget.appAlarm.alarmId)));
                               }
                               else {
                                 Alarm.stop(widget.alarmSettings.id)

@@ -195,7 +195,7 @@ class Medication {
   factory Medication.fromJson(Map<String, dynamic> map) {
     return Medication(
         key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
-        active: bool.parse(map['active'].toString()),
+        active: map['active'],
         patientName: map['patientName'].toString(),
         doctorName: map['doctorName'].toString(),
         doctorRegistration: map['doctorRegistration'].toString(),

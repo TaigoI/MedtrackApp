@@ -47,12 +47,6 @@ class _HomeState extends State<Home> {
         .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
   }
 
-  void loadAlarms() {
-    setState(() {
-      alarms = Alarm.getAlarms();
-      alarms.sort((a, b) => a.dateTime.isBefore(b.dateTime) ? 0 : 1);
-    });
-  }
 
   Future<void> stopDeprecatedAlarms() async {
     final now = DateTime.now();
@@ -70,7 +64,6 @@ class _HomeState extends State<Home> {
         context,
         MaterialPageRoute(
             builder: (context) => RingScreen(alarmSettings: alarmSettings, medicationBox: _medicationBox,)));
-    loadAlarms();
   }
 
   @override

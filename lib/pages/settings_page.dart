@@ -70,7 +70,7 @@ class _SettingsScreenState extends State<Settings> {
                                     _selectedRingtoneRadioTile = value!;
                                     settings!.selectedRingtone = value;
                                   });
-                                  //_savePreferences();
+                                  _savePreferences();
                                   Navigator.pop(context);
                                 },
                               ),
@@ -83,7 +83,7 @@ class _SettingsScreenState extends State<Settings> {
                                     _selectedRingtoneRadioTile = value!;
                                     settings!.selectedRingtone = value;
                                   });
-                                  //_savePreferences();
+                                  _savePreferences();
                                   Navigator.pop(context);
                                 },
                               ),
@@ -96,7 +96,7 @@ class _SettingsScreenState extends State<Settings> {
                                     _selectedRingtoneRadioTile = value!;
                                     settings!.selectedRingtone = value;
                                   });
-                                  //_savePreferences();
+                                  _savePreferences();
                                   Navigator.pop(context);
                                 },
                               ),
