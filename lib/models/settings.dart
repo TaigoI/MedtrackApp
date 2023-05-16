@@ -27,11 +27,11 @@ class Preference {
 
   factory Preference.fromMap(Map<String, dynamic> map) {
     return Preference(
-      key: map.containsKey('key') ? map['key'] : UniqueKey().toString(),
+      key: map['key'],
       selectedRingtone: map['selectedRingtone'].toString(),
       keyQRCode: map['keyQRCode'].toString(),
-      confirmAlarmQRCode: true,
-      receiveNotifications: true,
+      confirmAlarmQRCode: map['confirmAlarmQRCode'],
+      receiveNotifications: map['receiveNotifications'],
     );
   }
 
