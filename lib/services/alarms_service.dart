@@ -136,7 +136,7 @@ class AppAlarm {
         dateTime: timeStamp,
         assetAudioPath: audioPath,
         vibrate: true,
-        loopAudio: false,
+        loopAudio: true,
         notificationTitle: "Hora dos Remédios",
         notificationBody: "Abra o app para confirmar que tomou");
 
