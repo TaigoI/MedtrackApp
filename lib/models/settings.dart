@@ -41,7 +41,7 @@ class Preference {
       'selectedRingtone': selectedRingtone,
       'keyQRCode': keyQRCode,
       'confirmAlarmQRCode': confirmAlarmQRCode,
-      'receiveNotificationsTwentyMinutes': receiveNotifications
+      'receiveNotifications': receiveNotifications
     };
   }
 
