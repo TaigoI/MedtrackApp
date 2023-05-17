@@ -132,6 +132,7 @@ class _RingScreenState extends State<RingScreen> {
 
   Future<void> removeFromBox() async {
     await _alarmBox.delete(widget.appAlarm.key);
+    alarmsList.remove(widget.appAlarm);
   }
 
   @override

@@ -34,6 +34,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
 
   Future<void> removeFromBox() async {
     await alarmBox.delete(widget.appAlarm.key);
+    alarmsList.remove(widget.appAlarm);
   }
 
   void _startOrStop() {
