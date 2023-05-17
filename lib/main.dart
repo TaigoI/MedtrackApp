@@ -34,14 +34,6 @@ void main() async {
         receiveNotifications: true);
   }
 
-  DateTime now = DateTime.now();
-
-  for (AlarmSettings alarm in Alarm.getAlarms()) {
-    if (alarm.dateTime.isBefore(now)) {
-      await Alarm.stop(alarm.id);
-    }
-  }
-
   await Alarm.setNotificationOnAppKillContent(
     'Seus alarmes podem não tocar', 
     'Você fechou o app. Por favor, abra-o novamente para que os alarmes toquem.'

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:medtrack/services/alarms_service.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:medtrack/widgets/scanner_error_widget.dart';
 import 'package:alarm/alarm.dart';
 import 'package:medtrack/main.dart';
+import 'package:medtrack/pages/home_page.dart';
 
 class ScanQrCode extends StatefulWidget {
-  final int alarmId;
-  const ScanQrCode({Key? key, required this.alarmId}) : super(key: key);
+  final AppAlarm appAlarm;
+  const ScanQrCode({Key? key, required this.appAlarm}) : super(key: key);
 
   @override
   State<ScanQrCode> createState() => _ScanQrCodeState();
@@ -16,6 +19,7 @@ class _ScanQrCodeState extends State<ScanQrCode> {
   BarcodeCapture? barcode;
   String message = "Escaneie o QR code!";
   final String? confirmationKey = settings!.keyQRCode;
+  final alarmBox = Hive.box('alarm');
 
   final MobileScannerController controller = MobileScannerController(
       torchEnabled: false,
@@ -27,6 +31,10 @@ class _ScanQrCodeState extends State<ScanQrCode> {
       );
 
   bool isStarted = true;
+
+  Future<void> removeFromBox() async {
+    await alarmBox.delete(widget.appAlarm.key);
+  }
 
   void _startOrStop() {
     try {
@@ -70,8 +78,13 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                 onDetect: (barcode) {
                   setState(() {
                     this.barcode = barcode;
-                    if (this.barcode!.barcodes.first.rawValue == confirmationKey) {
-                      Alarm.stop(widget.alarmId).then((_) => Navigator.pushNamed(context, '/'));
+                    if (this.barcode!.barcodes.first.rawValue ==
+                        confirmationKey) {
+                      Alarm.stop(widget.appAlarm.alarmId).then((_) =>
+                          removeFromBox().then((_) => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => Home()))));
                     } else {
                       setState(() => message = "Código não reconhecido.");
                     }
@@ -132,26 +145,31 @@ class _ScanQrCodeState extends State<ScanQrCode> {
                         onPressed: () {
                           _startOrStop();
                           showDialog<String>(
-                            context: context,
-                            builder: (BuildContext context) => AlertDialog(
-                              title: const Text("Cancelar ação"),
-                              content: const Text(
-                                "Se você não tem acesso ao QRcode agora, clique em confirmar."
-                              ),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text("Cancelar")
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Alarm.stop(widget.alarmId).then((_) => Navigator.pushNamed(context, '/'));
-                                  },
-                                  child: const Text("Confirmar")
-                                )
-                              ],
-                            )
-                          );
+                              context: context,
+                              builder: (BuildContext context) => AlertDialog(
+                                    title: const Text("Cancelar ação"),
+                                    content: const Text(
+                                        "Se você não tem acesso ao QRcode agora, clique em confirmar."),
+                                    actions: <Widget>[
+                                      TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text("Cancelar")),
+                                      TextButton(
+                                          onPressed: () => 
+                                            Alarm.stop(widget.appAlarm.alarmId)
+                                                .then((_) => removeFromBox()
+                                                    .then((_) => Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                ScanQrCode(
+                                                                    appAlarm: widget
+                                                                        .appAlarm)))))
+                                          ,
+                                          child: const Text("Confirmar"))
+                                    ],
+                                  ));
                         },
                       ),
                       Center(

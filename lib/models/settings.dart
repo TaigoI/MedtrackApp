@@ -30,8 +30,8 @@ class Preference {
       key: map['key'],
       selectedRingtone: map['selectedRingtone'].toString(),
       keyQRCode: map['keyQRCode'].toString(),
-      confirmAlarmQRCode: map['confirmAlarmQRCode'],
-      receiveNotifications: map['receiveNotifications'],
+      confirmAlarmQRCode: map['confirmAlarmQRCode'] as bool,
+      receiveNotifications: map['receiveNotifications'] as bool,
     );
   }
 

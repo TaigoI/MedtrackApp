@@ -14,10 +14,6 @@ import 'package:medtrack/pages/ring_page.dart';
 import 'package:medtrack/pages/read_json.dart';
 import 'package:medtrack/pages/settings_page.dart';
 
-
-DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
-
-DateTime today = DateTime.now();
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -42,11 +38,9 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    //loadAlarms();
     subscription ??= Alarm.ringStream.stream
         .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
   }
-
 
   Future<void> stopDeprecatedAlarms() async {
     final now = DateTime.now();
@@ -57,7 +51,6 @@ class _HomeState extends State<Home> {
       }
     }
   }
-
 
   Future<void> navigateToRingScreen(AlarmSettings alarmSettings) async {
     await Navigator.push(
@@ -72,9 +65,8 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {    
     return Scaffold(
         appBar: AppBar(
           title: Image.asset('assets/images/logo.png', height: 48),
