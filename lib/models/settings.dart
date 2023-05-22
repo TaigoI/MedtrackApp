@@ -25,7 +25,7 @@ class Preference {
     return key;
   }
 
-  factory Preference.fromMap(Map<String, dynamic> map) {
+  factory Preference.fromMap(Map<dynamic, dynamic> map) {
     return Preference(
       key: map['key'],
       selectedRingtone: map['selectedRingtone'].toString(),

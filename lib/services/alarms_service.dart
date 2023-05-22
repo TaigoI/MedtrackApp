@@ -145,7 +145,7 @@ class AppAlarm {
   }
 
   Future<void> setAlarmIfAlreadyNot(int id) async {
-    if (!Alarm.getAlarms().any((alarm) => alarm.id == id)) {
+    if (!Alarm.getAlarms().any((alarm) => alarm.id == id) && DateTime.now().isBefore(timeStamp)) {
       await Alarm.set(
           alarmSettings: AlarmSettings(
               id: id,

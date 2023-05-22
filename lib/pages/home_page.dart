@@ -40,6 +40,9 @@ class _HomeState extends State<Home> {
     super.initState();
     subscription ??= Alarm.ringStream.stream
         .listen((alarmSettings) => navigateToRingScreen(alarmSettings));
+    // print(alarmsList);
+    // print('\n\n');
+    // print(Hive.box('alarm').toMap());
   }
 
   Future<void> stopDeprecatedAlarms() async {

@@ -48,7 +48,7 @@ class _MedicationPageState extends State<MedicationPage> {
           alignment: Alignment.center,
           child: Column(
             children: [
-              Text("Hello Medication Page ${widget.medication.key}"),
+              // Text("Hello Medication Page ${widget.medication.key}"),
               Form(
                   autovalidateMode: AutovalidateMode.always,
                   onChanged: () {
