@@ -139,13 +139,7 @@ class _RingScreenState extends State<RingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading:
-            IconButton(icon: const Icon(Icons.menu_rounded), onPressed: () {}),
         title: Image.asset('assets/images/logo.png', height: 48),
-        actions: <Widget>[
-          IconButton(
-              icon: const Icon(Icons.account_circle_rounded), onPressed: () {})
-        ],
         centerTitle: true,
         elevation: 4,
       ),
