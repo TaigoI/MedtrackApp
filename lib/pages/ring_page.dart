@@ -17,10 +17,10 @@ class RingScreen extends StatefulWidget {
   final Box<dynamic> medicationBox;
   late final AppAlarm appAlarm;
 
-  RingScreen({super.key, required this.alarmSettings, required this.medicationBox}) {
-    appAlarm = alarmsList
-        .firstWhere((element) => element.alarmId == alarmSettings.id);
-
+  RingScreen(
+      {super.key, required this.alarmSettings, required this.medicationBox}) {
+    appAlarm =
+        alarmsList.firstWhere((element) => element.alarmId == alarmSettings.id);
   }
 
   @override
@@ -30,11 +30,13 @@ class RingScreen extends StatefulWidget {
 class _RingScreenState extends State<RingScreen> {
   final Map<String, List<bool>> _checklist = {};
   final bool confirmation = settings!.confirmAlarmQRCode;
-  
+  final _alarmBox = Hive.box('alarm');
+  final _qrCodeScanner = QRCodeScannerConfirm();
+
   @override
   void initState() {
     super.initState();
-    
+
     bool active = true;
     for (MapEntry e in widget.appAlarm.items.entries) {
       if (e.value.every((v) => v == false)) {
@@ -45,26 +47,26 @@ class _RingScreenState extends State<RingScreen> {
     }
 
     if (!active) {
-      Alarm.stop(widget.appAlarm.alarmId).then((_) => 
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Home())));
+      Alarm.stop(widget.appAlarm.alarmId).then((_) => Navigator.push(
+          context, MaterialPageRoute(builder: (context) => Home())));
     }
 
     widget.appAlarm.items.forEach((patientName, itemsList) {
       _checklist[patientName] = List.filled(
-        itemsList.where((element) => element.isActive() == true).toList().length,
-        false
-      );
+          itemsList
+              .where((element) => element.isActive() == true)
+              .toList()
+              .length,
+          false);
     });
   }
 
   Widget medicationCheckBox(
       BuildContext context, AlarmItem item, int idx, String patientName) {
-      
     if (widget.medicationBox.containsKey(item.medicationKey)) {
-      Medication med = Medication.fromMap(
-          widget.medicationBox
-          .get(item.medicationKey));
-      
+      Medication med =
+          Medication.fromMap(widget.medicationBox.get(item.medicationKey));
+
       return CheckboxListTile(
         value: _checklist[patientName]![idx],
         onChanged: (bool? value) {
@@ -79,7 +81,8 @@ class _RingScreenState extends State<RingScreen> {
     return Container();
   }
 
-  Widget patientCard(BuildContext context, String patientName, List<AlarmItem> items) {
+  Widget patientCard(
+      BuildContext context, String patientName, List<AlarmItem> items) {
     return Card(
         color: Theme.of(context).colorScheme.background,
         shape: RoundedRectangleBorder(
@@ -93,19 +96,17 @@ class _RingScreenState extends State<RingScreen> {
           Center(
             widthFactor: 2,
             heightFactor: 2,
-            child: Text(
-              patientName,
-              style: Theme.of(context).textTheme.headlineSmall
-            ),
+            child: Text(patientName,
+                style: Theme.of(context).textTheme.headlineSmall),
           ),
           Column(
-            children: 
-                items
+            children: items
                 .where((element) => element.isActive() == true)
                 .toList()
                 .asMap()
                 .entries
-                .map((item) => medicationCheckBox(context, item.value, item.key, patientName))
+                .map((item) => medicationCheckBox(
+                    context, item.value, item.key, patientName))
                 .toList(),
           )
         ]));
@@ -126,23 +127,20 @@ class _RingScreenState extends State<RingScreen> {
       if (!_checklist[key]!.every((element) => element == true)) {
         return false;
       }
-    } 
-    return true; 
+    }
+    return true;
   }
 
-
+  Future<void> removeFromBox() async {
+    await _alarmBox.delete(widget.appAlarm.key);
+    alarmsList.remove(widget.appAlarm);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading:
-            IconButton(icon: const Icon(Icons.menu_rounded), onPressed: () {}),
         title: Image.asset('assets/images/logo.png', height: 48),
-        actions: <Widget>[
-          IconButton(
-              icon: const Icon(Icons.account_circle_rounded), onPressed: () {})
-        ],
         centerTitle: true,
         elevation: 4,
       ),
@@ -180,21 +178,22 @@ class _RingScreenState extends State<RingScreen> {
                                     onPressed: () async {
                                       final now = DateTime.now();
                                       Alarm.set(
-                                              alarmSettings:
-                                                  widget.alarmSettings.copyWith(
-                                                      dateTime: DateTime(
-                                                              now.year,
-                                                              now.month,
-                                                              now.day,
-                                                              now.hour,
-                                                              now.minute,
-                                                              0,
-                                                              0)
-                                                          .add(const Duration(
-                                                              minutes: snoozeTime))),)
-                                          .then((_) => Navigator.push(context, 
-                                            MaterialPageRoute(builder: (context) => Home())));
-
+                                        alarmSettings: widget.alarmSettings
+                                            .copyWith(
+                                                dateTime: DateTime(
+                                                        now.year,
+                                                        now.month,
+                                                        now.day,
+                                                        now.hour,
+                                                        now.minute,
+                                                        0,
+                                                        0)
+                                                    .add(const Duration(
+                                                        minutes: snoozeTime))),
+                                      ).then((_) => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => Home())));
                                     },
                                     child: const Text("Confirmar"))
                               ],
@@ -220,9 +219,14 @@ class _RingScreenState extends State<RingScreen> {
                                               Navigator.pop(context),
                                           child: const Text("Cancelar")),
                                       TextButton(
-                                          onPressed: () => Alarm.stop(
-                                                  widget.alarmSettings.id)
-                                              .then((_) => Navigator.push(context, MaterialPageRoute(builder: (context) => Home()))),
+                                          onPressed: () async => await Alarm
+                                                  .stop(widget.alarmSettings.id)
+                                              .then((_) => removeFromBox().then(
+                                                  (_) => Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              Home())))),
                                           child: const Text("Confirmar"))
                                     ])),
                     icon: const Icon(Icons.arrow_circle_right),
@@ -234,17 +238,35 @@ class _RingScreenState extends State<RingScreen> {
                               borderRadius: BorderRadius.circular(8.0))),
                       onPressed: !checkedEverything()
                           ? null
-                          : () {
+                          : () async {
                               if (confirmation) {
-                                Navigator.push(context, 
-                                  MaterialPageRoute(builder: (context) => ScanQrCode(alarmId: widget.appAlarm.alarmId)));
-                              }
-                              else {
+                                _qrCodeScanner
+                                    .scanQRCode(widget.appAlarm.alarmId)
+                                    .then((val) {
+                                  if (val == true) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Alarme confirmado com sucesso.")));
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => Home()));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Chave inválida! Leia a chave gerada pelo app.")));
+                                  }
+                                });
+                              } else {
                                 Alarm.stop(widget.alarmSettings.id)
                                     .then((_) => Navigator.pop(context));
                               }
                             },
-                      icon: confirmation ? const Icon(Icons.qr_code) : const Icon(Icons.check),
+                      icon: confirmation
+                          ? const Icon(Icons.qr_code)
+                          : const Icon(Icons.check),
                       label: const Text("Confirmar")),
                 ],
               )

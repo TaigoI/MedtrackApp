@@ -68,6 +68,14 @@ class AppAlarm {
     items[patientName] = [AlarmItem(medicationKey: medicationKey)];
     setAlarm();
   }
+  
+  AppAlarm.withItems(
+      {required this.key,
+      required this.timeStamp,
+      required this.items,
+      required this.audioPath,
+      required this.alarmId,
+      required this.active});
 
   get(String key) {
     return AppAlarm.fromMap(_alarmBox.get(key)!);
@@ -75,16 +83,6 @@ class AppAlarm {
 
   Future<void> save() async {
     await _alarmBox.put(key, toMap());
-  }
-
-  AppAlarm.withItems(
-      {required this.key,
-      required this.timeStamp,
-      required this.items,
-      required this.audioPath,
-      required this.alarmId,
-      required this.active}) {
-    setAlarmIfAlreadyNot(alarmId);
   }
 
   factory AppAlarm.fromMap(Map<String, dynamic> map) {
@@ -138,14 +136,16 @@ class AppAlarm {
         vibrate: true,
         loopAudio: true,
         notificationTitle: "Hora dos Remédios",
-        notificationBody: "Abra o app para confirmar que tomou");
+        notificationBody: "Abra o app para confirmar que tomou",
+        enableNotificationOnKill: true
+      );
 
     await Alarm.set(alarmSettings: alarmSettings);
     await save();
   }
 
   Future<void> setAlarmIfAlreadyNot(int id) async {
-    if (!Alarm.getAlarms().any((alarm) => alarm.id == id)) {
+    if (!Alarm.getAlarms().any((alarm) => alarm.id == id) && DateTime.now().isBefore(timeStamp)) {
       await Alarm.set(
           alarmSettings: AlarmSettings(
               id: id,
@@ -154,7 +154,8 @@ class AppAlarm {
               vibrate: true,
               loopAudio: true,
               notificationTitle: "Hora dos Remédios",
-              notificationBody: "Abra o app para confirmar que tomou"));
+              notificationBody: "Abra o app para confirmar que tomou",
+              enableNotificationOnKill: true));
     }
   }
 
@@ -269,10 +270,13 @@ Future<List<AppAlarm>> getAlarmList() async {
   List<AppAlarm> list = [];
   DateTime now = DateTime.now();
   _alarmBox.toMap().forEach((key, value) async {
-    if (DateTime.parse(value['timeStamp'].toString()).isAfter(now)) {
-      list.add(AppAlarm.fromMap(Map<String, dynamic>.from(value as Map)));
-    } else {
-      await Alarm.stop(int.parse(value['id']));
+    if (value != null) {
+      if (DateTime.parse(value['timeStamp'].toString()).isAfter(now)) {
+        list.add(AppAlarm.fromMap(Map<String, dynamic>.from(value as Map)));
+      } else {
+        if (value['id'] != null)
+          await Alarm.stop(int.parse(value['id']));
+      }
     }
   });
 
