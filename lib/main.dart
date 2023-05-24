@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:medtrack/pages/splash_screen.dart';
 import 'pages/home_page.dart';
 import 'theme.dart';
 import 'package:medtrack/models/settings.dart';
 import 'package:alarm/alarm.dart';
 import 'package:medtrack/services/alarms_service.dart';
+import 'package:medtrack/pages/tutorial_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const settingsKey = 'user_prefs';
 Preference? settings;
+bool showOnboarding = true;
 
 void main() async {
 
@@ -49,6 +53,10 @@ void main() async {
 
   alarmsList = await getAlarmList();
 
+  WidgetsFlutterBinding.ensureInitialized();
+  final preference = await SharedPreferences.getInstance();
+  showOnboarding = preference.getBool('ONBOARDING') ?? true;
+
   runApp(const MyApp());
 }
 
@@ -70,7 +78,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
       darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
-      home: const Home(),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => SplashScreen(),
+        '/home': (context) => showOnboarding ? TutorialScreen() : const Home(), // Home screen route
+      },
+      // home: const Home(),
     );
   }
 }

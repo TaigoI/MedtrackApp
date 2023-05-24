@@ -18,8 +18,6 @@ class _SettingsScreenState extends State<Settings> {
   String _selectedRingtoneRadioTile = settings!.selectedRingtone;
   bool _switchConfirmAlarmQRCodeValue = settings!.confirmAlarmQRCode;
   bool _switchReceiveNotificationsValue = settings!.receiveNotifications;
-  //bool isOptionEnabledQRCode = true;
-  //bool isOptionEnabledNotify = true;
 
   Future<void> _savePreferences() async {
     await settings!.save();
@@ -30,6 +28,8 @@ class _SettingsScreenState extends State<Settings> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configurações'),
+        centerTitle: true,
+        elevation: 4,
       ),
       body: SettingsList(
           sections: [
@@ -122,10 +122,7 @@ class _SettingsScreenState extends State<Settings> {
 
                   if (value == true) {
                     settings!.keyQRCode = await generateQrCodeAndShareIt();
-                    //isOptionEnabledQRCode = true;
-                  } //else {
-                  //   isOptionEnabledQRCode = false;
-                  // }
+                  }
 
                   settings!.confirmAlarmQRCode = value;
                   await settings!.save();
@@ -140,17 +137,11 @@ class _SettingsScreenState extends State<Settings> {
                 title: const Text(
                     'Desejo continuar recebendo a cada 20 minutos o alarme de tomar um remédio enquanto não confirmar que já tomei.'),
                 initialValue: _switchReceiveNotificationsValue,
-                //enabled: isOptionEnabledNotify,
+
                 onToggle: (bool value) async {
                   setState(() {
                     _switchReceiveNotificationsValue = value;
                   });
-
-                  // if (value == true) {
-                  //   isOptionEnabledNotify = true; //chamar a função de soneca do helder
-                  // } else {
-                  //   isOptionEnabledNotify = false;
-                  // }
 
                   settings!.receiveNotifications = value;
                   await settings!.save();
