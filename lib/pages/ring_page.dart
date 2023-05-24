@@ -31,6 +31,7 @@ class _RingScreenState extends State<RingScreen> {
   final Map<String, List<bool>> _checklist = {};
   final bool confirmation = settings!.confirmAlarmQRCode;
   final _alarmBox = Hive.box('alarm');
+  final _qrCodeScanner = QRCodeScannerConfirm();
 
   @override
   void initState() {
@@ -237,17 +238,30 @@ class _RingScreenState extends State<RingScreen> {
                               borderRadius: BorderRadius.circular(8.0))),
                       onPressed: !checkedEverything()
                           ? null
-                          : () {
+                          : () async {
                               if (confirmation) {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => ScanQrCode(
-                                            appAlarm: widget.appAlarm)));
+                                _qrCodeScanner
+                                    .scanQRCode(widget.appAlarm.alarmId)
+                                    .then((val) {
+                                  if (val == true) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Alarme confirmado com sucesso.")));
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => Home()));
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text(
+                                                "Chave inválida! Leia a chave gerada pelo app.")));
+                                  }
+                                });
                               } else {
-                                Alarm.stop(widget.alarmSettings.id).then((_) =>
-                                    removeFromBox()
-                                        .then((_) => Navigator.pop(context)));
+                                Alarm.stop(widget.alarmSettings.id)
+                                    .then((_) => Navigator.pop(context));
                               }
                             },
                       icon: confirmation
