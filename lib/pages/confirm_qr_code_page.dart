@@ -1,6 +1,7 @@
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:alarm/alarm.dart';
 import 'package:medtrack/main.dart';
+import 'package:medtrack/pages/home_page.dart';
 
 class QRCodeScannerConfirm {
   Future<bool> scanQRCode(int alarmId) async {

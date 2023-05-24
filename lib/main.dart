@@ -21,26 +21,16 @@ void main() async {
   await Hive.openBox('preference');
 
   final configBox = Hive.box('preference');
-
   if (configBox.get(settingsKey) != null) {
-    settings =
-        Preference.fromMap(configBox.get(settingsKey).cast<String, dynamic>());
+    settings = Preference.fromMap(configBox.get(settingsKey));
   } else {
-    settings = Preference(
+    settings =  Preference(
         key: settingsKey,
         selectedRingtone: 'sounds/mozart.mp3',
         keyQRCode: '',
         confirmAlarmQRCode: false,
         receiveNotifications: true);
-  }
-
-  DateTime now = DateTime.now();
-
-  for (AlarmSettings alarm in Alarm.getAlarms()) {
-    if (alarm.dateTime.isBefore(now)) {
-      await Alarm.stop(alarm.id);
     }
-  }
 
   await Alarm.setNotificationOnAppKillContent(
     'Seus alarmes podem não tocar', 

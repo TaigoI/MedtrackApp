@@ -30,6 +30,7 @@ class RingScreen extends StatefulWidget {
 class _RingScreenState extends State<RingScreen> {
   final Map<String, List<bool>> _checklist = {};
   final bool confirmation = settings!.confirmAlarmQRCode;
+  final _alarmBox = Hive.box('alarm');
   final _qrCodeScanner = QRCodeScannerConfirm();
 
   @override
@@ -130,17 +131,16 @@ class _RingScreenState extends State<RingScreen> {
     return true;
   }
 
+  Future<void> removeFromBox() async {
+    await _alarmBox.delete(widget.appAlarm.key);
+    alarmsList.remove(widget.appAlarm);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading:
-            IconButton(icon: const Icon(Icons.menu_rounded), onPressed: () {}),
         title: Image.asset('assets/images/logo.png', height: 48),
-        actions: <Widget>[
-          IconButton(
-              icon: const Icon(Icons.account_circle_rounded), onPressed: () {})
-        ],
         centerTitle: true,
         elevation: 4,
       ),
@@ -219,13 +219,14 @@ class _RingScreenState extends State<RingScreen> {
                                               Navigator.pop(context),
                                           child: const Text("Cancelar")),
                                       TextButton(
-                                          onPressed: () => Alarm.stop(
-                                                  widget.alarmSettings.id)
-                                              .then((_) => Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          Home()))),
+                                          onPressed: () async => await Alarm
+                                                  .stop(widget.alarmSettings.id)
+                                              .then((_) => removeFromBox().then(
+                                                  (_) => Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: (context) =>
+                                                              Home())))),
                                           child: const Text("Confirmar"))
                                     ])),
                     icon: const Icon(Icons.arrow_circle_right),
