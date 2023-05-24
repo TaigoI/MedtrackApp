@@ -269,10 +269,13 @@ Future<List<AppAlarm>> getAlarmList() async {
   List<AppAlarm> list = [];
   DateTime now = DateTime.now();
   _alarmBox.toMap().forEach((key, value) async {
-    if (DateTime.parse(value['timeStamp'].toString()).isAfter(now)) {
-      list.add(AppAlarm.fromMap(Map<String, dynamic>.from(value as Map)));
-    } else {
-      await Alarm.stop(int.parse(value['id']));
+    if (value != null) {
+      if (DateTime.parse(value['timeStamp'].toString()).isAfter(now)) {
+        list.add(AppAlarm.fromMap(Map<String, dynamic>.from(value as Map)));
+      } else {
+        if (value['id'] != null)
+          await Alarm.stop(int.parse(value['id']));
+      }
     }
   });
 
