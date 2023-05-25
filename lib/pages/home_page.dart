@@ -13,9 +13,9 @@ import 'package:alarm/alarm.dart';
 import 'package:medtrack/services/alarms_service.dart';
 import 'package:medtrack/pages/ring_page.dart';
 import 'package:medtrack/pages/read_json.dart';
-
-DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
-DateTime today = DateTime.now();
+//
+// DateTime goalTime = DateTime.now().add(const Duration(seconds: 10));
+// DateTime today = DateTime.now();
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
